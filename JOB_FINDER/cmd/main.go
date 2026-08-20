@@ -11,7 +11,7 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "yo world")
 	})
-
+	//просто текст для бренча
 	fmt.Println("starting server :8080")
 	http.ListenAndServe(":8080", nil)
 }
