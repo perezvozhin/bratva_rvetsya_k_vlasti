@@ -1,10 +1,12 @@
 package main
 
 import (
+	api_ "JOB_FINDER/api"
 	"JOB_FINDER/internals/FS_config"
 	loggersystem "JOB_FINDER/internals/logger"
-	"fmt"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -13,13 +15,21 @@ func main() {
 	logger := loggersystem.Init()
 	cfg := FS_config.Init(logger)
 
-	//инит сервера
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "yo world")
-	})
-	//просто текст для бренча
-	fmt.Println("starting server :8080")
+	//инициализация чи
+	router := chi.NewMux()
 
+	//гет запрос с роутом
+	router.Get("/test", api_.TestApi())
+
+	//добавим чи, как мультиплексер
+	srv := &http.Server{
+		Addr:    ":" + cfg.Port,
+		Handler: router,
+	}
 	logger.Info("started server")
-	http.ListenAndServe(cfg.Port, nil)
+	err := srv.ListenAndServe()
+	if err != nil {
+		logger.Fatal("error starting server", "error", err)
+		panic(err)
+	}
 }
