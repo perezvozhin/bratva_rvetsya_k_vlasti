@@ -1,4 +1,7 @@
 {
+
+  "PATH_TO_FILESYSTEM": "",
+  "PATH_TO_STATIC": "",
   "API_KEY": "SOMEKEY",
   "port": "9090",
   "name": "shit"

@@ -2,6 +2,7 @@ package main
 
 import (
 	api_ "JOB_FINDER/api"
+	"JOB_FINDER/httpmw"
 	"JOB_FINDER/internals/FS_config"
 	loggersystem "JOB_FINDER/internals/logger"
 	"net/http"
@@ -18,8 +19,16 @@ func main() {
 	//инициализация чи
 	router := chi.NewMux()
 
-	//гет запрос с роутом
-	router.Get("/test", api_.TestApi())
+	//глобальный миддлвар на проверку api gemini
+	router.Use(httpmw.ApiCheckMiddleWare(cfg.ApiKey))
+
+	//коллекция api
+	router.Route("/api", func(r chi.Router) {
+		//апи для ввода ключа к гемини (триггерится в случае, если строка конфига пуста)
+		//смотри логику в httpmw.ApiCheckMiddleWare(cfg.ApiKey)
+
+		router.Get("/insert", api_.InsertApi(cfg.PathStatic))
+	})
 
 	//добавим чи, как мультиплексер
 	srv := &http.Server{
