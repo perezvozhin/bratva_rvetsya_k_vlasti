@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// fkokofkeokofke
+// fkokofkeokofke f=eoi0efi0efi0e
 func main() {
 
 	//инит вспом штук
