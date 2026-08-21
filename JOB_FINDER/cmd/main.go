@@ -4,6 +4,7 @@ import (
 	api_ "JOB_FINDER/api"
 	"JOB_FINDER/httpmw"
 	"JOB_FINDER/internals/FS_config"
+	"JOB_FINDER/internals/helper"
 	loggersystem "JOB_FINDER/internals/logger"
 	"net/http"
 
@@ -16,6 +17,7 @@ func main() {
 	//инит вспом штук
 	logger := loggersystem.Init()
 	cfg := FS_config.Init(logger)
+	helper.Helper(cfg.PathFilesystem)
 
 	//инициализация чи
 	router := chi.NewMux()
