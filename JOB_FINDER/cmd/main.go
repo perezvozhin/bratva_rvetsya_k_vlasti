@@ -23,7 +23,7 @@ func main() {
 
 	//инит вспом штук
 	logger := loggersystem.Init()
-	cfg := FS_config.Init(logger)
+	cfg := FS_config.Init()
 	CV := helper.CheckDirectoryForCV(cfg.PathFilesystem, logger)
 	//init services
 
