@@ -36,12 +36,10 @@ type Snippet struct {
 	Responsibility string `json:"responsibility"`
 }
 
-func hhToVacancy(hh HHResponse) domain.Vacancy {
-	domainItems := make([]domain.Item, 0, len(hh.Items))
+func hhToVacancy(hh HHResponse) []domain.Vacancy {
+	vacancies := make([]domain.Vacancy, 0, len(hh.Items))
 
-	for i := 0; i < len(hh.Items); i++ {
-		item := hh.Items[i]
-
+	for _, item := range hh.Items {
 		var domainSalary *domain.Salary
 		if item.Salary != nil {
 			domainSalary = &domain.Salary{
@@ -51,7 +49,7 @@ func hhToVacancy(hh HHResponse) domain.Vacancy {
 			}
 		}
 
-		domainItems = append(domainItems, domain.Item{
+		vacancies = append(vacancies, domain.Vacancy{
 			ID:             item.ID,
 			Name:           item.Name,
 			URL:            item.URL,
@@ -59,14 +57,12 @@ func hhToVacancy(hh HHResponse) domain.Vacancy {
 			Salary:         domainSalary,
 			Requirement:    item.Snippet.Requirement,
 			Responsibility: item.Snippet.Responsibility,
+			Found:          hh.Found,
+			Page:           hh.Page,
+			Pages:          hh.Pages,
+			PerPage:        hh.PerPage,
 		})
 	}
 
-	return domain.NewVacancy(
-		domainItems,
-		hh.Found,
-		hh.Page,
-		hh.Pages,
-		hh.PerPage,
-	)
+	return vacancies
 }

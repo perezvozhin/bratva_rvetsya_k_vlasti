@@ -1,6 +1,17 @@
+## Запуск каждого таргета осуществляется с корня рабочей директории!
+
 export PROJECT_ROOT=${shell pwd}
 
 .DEFAULT_GOAL := help
+
+db-cleanup-sqlite: ## SQLite: Удалить файл базы данных
+	@read -p "Удалить базу данных SQLite? Все собранные вакансии будут потеряны. [y/N]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+		rm -f ./out/sqlite/vacancies.db; \
+		echo "Файл vacancies.db удален. Для пересоздания запусти make goose-up-sqlite"; \
+	else \
+		echo "Очистка отменена"; \
+	fi
 
 goose-create-sqlite: ## SQLite: Создать миграции
 	@mkdir -p ${PROJECT_ROOT}/out/sqlite ${PROJECT_ROOT}/migrations/sqlite; \
@@ -27,3 +38,11 @@ goose-action-sqlite: ## SQLite: Применить команду миграци
 
 run-parser: ## Go: Запустить парсер
 	@go run -C ./JOB_FINDER ./cmd/parser/main.go
+
+
+
+help: ## Show help for commands
+	@echo "=== Help ==="
+	@echo ""
+	@echo "Available commands:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
