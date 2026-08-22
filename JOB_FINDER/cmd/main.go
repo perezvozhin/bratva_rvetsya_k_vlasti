@@ -1,11 +1,13 @@
 package main
 
 import (
-	api_ "JOB_FINDER/api"
+	api_ "JOB_FINDER/api/rest"
+	"JOB_FINDER/api/view"
 	"JOB_FINDER/httpmw"
 	"JOB_FINDER/internals/FS_config"
 	"JOB_FINDER/internals/helper"
 	loggersystem "JOB_FINDER/internals/logger"
+	"html/template"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -13,24 +15,32 @@ import (
 
 // писька тряс
 func main() {
+	//инициализация чи
+	router := chi.NewMux()
 
 	//инит вспом штук
 	logger := loggersystem.Init()
 	cfg := FS_config.Init(logger)
 	helper.Helper(cfg.PathFilesystem)
 
-	//инициализация чи
-	router := chi.NewMux()
+	//статика (html + css)
+	helper.GetStatic(router, logger)
+	//статика (js)
+	helper.GetJSScript(router, logger)
+	//парсер html
+	tmplparser := template.Must(template.ParseGlob("web/*.html"))
+	//инит сервисов
+	// - userService := usr_service.Init(nil)
 
-	//глобальный миддлвар на проверку api gemini
-	router.Use(httpmw.ApiCheckMiddleWare(cfg.ApiKey))
+	router.Get("/insert", api_.InsertApi(tmplparser))
 
 	//коллекция api
-	router.Route("/api", func(r chi.Router) {
+	router.Group(func(r chi.Router) {
 		//апи для ввода ключа к гемини (триггерится в случае, если строка конфига пуста)
 		//смотри логику в httpmw.ApiCheckMiddleWare(cfg.ApiKey)
+		r.Use(httpmw.ApiCheckMiddleWare(cfg.ApiKey))
+		r.Handle("/", view.MainPageDrawer(tmplparser))
 
-		router.Get("/insert", api_.InsertApi(cfg.PathStatic))
 	})
 
 	//добавим чи, как мультиплексер

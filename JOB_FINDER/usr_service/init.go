@@ -1,5 +1,10 @@
 package usr_service
 
-func (repo *Repo) With() {
+type Usr_service struct {
+	repo Repo
+}
 
+func Init(repo Repo) *Usr_service {
+
+	return &Usr_service{repo}
 }

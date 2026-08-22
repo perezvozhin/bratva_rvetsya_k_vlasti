@@ -10,7 +10,7 @@ func ApiCheckMiddleWare(api string) func(http.Handler) http.Handler {
 
 			if api == "" {
 				//роутим на страницу ввода api
-				http.Redirect(w, r, "/api/insert", http.StatusFound)
+				http.Redirect(w, r, "/insert", http.StatusFound)
 				return
 			}
 
