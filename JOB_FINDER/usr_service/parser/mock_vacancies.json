@@ -1,0 +1,38 @@
+{
+  "items": [
+    {
+      "id": "100200300",
+      "name": "Golang Developer (Intern / Junior)",
+      "alternate_url": "https://hh.ru/vacancy/100200300",
+      "employer": {
+        "name": "Fintech Solutions"
+      },
+      "salary": {
+        "from": 70000,
+        "to": 110000,
+        "currency": "RUR"
+      },
+      "snippet": {
+        "requirement": "Базовые знания Go, понимание SQL и реляционных баз данных.",
+        "responsibility": "Разработка внутренних сервисов, написание тестов."
+      }
+    },
+    {
+      "id": "100200301",
+      "name": "Junior Backend Go",
+      "alternate_url": "https://hh.ru/vacancy/100200301",
+      "employer": {
+        "name": "Startup Hub"
+      },
+      "salary": null,
+      "snippet": {
+        "requirement": "Желание учиться, аккуратность в коде.",
+        "responsibility": "Интеграция сторонних API и поддержка пайплайнов."
+      }
+    }
+  ],
+  "found": 2,
+  "page": 0,
+  "pages": 1,
+  "per_page": 10
+}

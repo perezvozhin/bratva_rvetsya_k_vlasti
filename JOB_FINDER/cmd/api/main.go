@@ -55,6 +55,8 @@ func main() {
 		Addr:    ":" + cfg.Port,
 		Handler: router,
 	}
+
+	// FIXME feat: graceful shutdown
 	logger.Info("started server")
 	err := srv.ListenAndServe()
 	if err != nil {
