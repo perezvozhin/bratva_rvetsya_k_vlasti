@@ -1,7 +1,5 @@
 {
-
-  "PATH_TO_FILESYSTEM": "ssss",
-
+  "PATH_TO_FILESYSTEM": "",
   "API_KEY": "SOMEKEY",
   "port": "9090",
   "name": "shit"
