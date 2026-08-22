@@ -1,7 +1,18 @@
 package usr_service
 
-func (s *Usr_service) SetTimer(time string) {
-	if time == "" {
-		time = time.ti
+import "time"
+
+/*
+Функция проверяет установку даты в джсоне
+Если дата пуста (вперые открывается приложение)
+-устанавливает текующую дату в формате
+2006-01-02 15:04:05
+
+От установки текущей даты должно пройти 7 дней, затем:
+рассылаем резюме в 10 корп -> снова вызываем SetTimer
+*/
+func (s *Usr_service) SetTimer(configTime string) {
+	if configTime == "" {
+		configTime = time.Now().Format("2006-01-02 15:04:05")
 	}
 }

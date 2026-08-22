@@ -8,9 +8,10 @@ import (
 )
 
 func Init(logs *zap.SugaredLogger) *Config {
-	FS_fileText, err := os.ReadFile("../config/config.json")
+
+	FS_fileText, err := os.ReadFile("config/config.json")
 	if err != nil {
-		logs.Fatal("CANNOT READ CONFIG!")
+		logs.Fatal("CANNOT READ CONFIG!, %s")
 		return nil
 	}
 	var config Config

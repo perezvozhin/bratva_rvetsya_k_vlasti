@@ -7,6 +7,8 @@ import (
 	"JOB_FINDER/internals/FS_config"
 	"JOB_FINDER/internals/helper"
 	loggersystem "JOB_FINDER/internals/logger"
+	"JOB_FINDER/usr_service"
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -21,8 +23,13 @@ func main() {
 	//инит вспом штук
 	logger := loggersystem.Init()
 	cfg := FS_config.Init(logger)
-	helper.Helper(cfg.PathFilesystem)
+	CV := helper.CheckDirectoryForCV(cfg.PathFilesystem, logger)
+	//init services
 
+	CS_userService := usr_service.Init(logger, CV)
+
+	//временно
+	fmt.Println(CS_userService)
 	//статика (html + css)
 	helper.GetStatic(router, logger)
 	//статика (js)
