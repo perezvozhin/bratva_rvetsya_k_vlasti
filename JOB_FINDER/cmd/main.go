@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"html/template"
+	"net/http"
+
 	api_ "JOB_FINDER/api/rest"
 	"JOB_FINDER/api/view"
 	"JOB_FINDER/httpmw"
@@ -8,15 +12,6 @@ import (
 	"JOB_FINDER/internals/helper"
 	loggersystem "JOB_FINDER/internals/logger"
 	"JOB_FINDER/usr_service"
-	"fmt"
-	"html/template"
-	"net/http"
-
-	api_ "github.com/perezvozhin/bratva_rvetsya_k_vlasti/JOB_FINDER/api"
-	"github.com/perezvozhin/bratva_rvetsya_k_vlasti/JOB_FINDER/httpmw"
-	"github.com/perezvozhin/bratva_rvetsya_k_vlasti/JOB_FINDER/internals/FS_config"
-	"github.com/perezvozhin/bratva_rvetsya_k_vlasti/JOB_FINDER/internals/helper"
-	loggersystem "github.com/perezvozhin/bratva_rvetsya_k_vlasti/JOB_FINDER/internals/logger"
 
 	"github.com/go-chi/chi/v5"
 )

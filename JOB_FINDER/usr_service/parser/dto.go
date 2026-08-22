@@ -1,6 +1,6 @@
 package parser
 
-import "github.com/perezvozhin/bratva_rvetsya_k_vlasti/JOB_FINDER/internals/domain"
+import "JOB_FINDER/internals/domain"
 
 // HHResponse представляет из себя ответ HH API.
 type HHResponse struct {

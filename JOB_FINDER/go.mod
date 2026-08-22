@@ -1,4 +1,4 @@
-module github.com/perezvozhin/bratva_rvetsya_k_vlasti
+module JOB_FINDER
 
 go 1.25.5
 

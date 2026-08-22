@@ -1,0 +1,12 @@
+services:
+  jobfinder-sqlite-goose:
+    build:
+      context: .
+      dockerfile: ${PROJECT_ROOT}/migrations/Dockerfile.goose
+    volumes:
+      - ${PROJECT_ROOT}/migrations/sqlite:/migrations
+      - ${PROJECT_ROOT}/out/sqlite:/out/sqlite
+    environment:
+      - GOOSE_DRIVER=sqlite3
+      - GOOSE_DBSTRING=/out/sqlite/vacancies.db
+      - GOOSE_MIGRATION_DIR=/migrations

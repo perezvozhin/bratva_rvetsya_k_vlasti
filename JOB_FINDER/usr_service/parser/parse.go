@@ -80,6 +80,4 @@ func (c *ParserClient) ParseHH(log *zap.SugaredLogger) {
 	vacancy := hhToVacancy(hhResponse)
 
 	fmt.Println(vacancy)
-
-	// Далее логика репозитория (sqlite). Нужно натсроить миграции goose
 }
