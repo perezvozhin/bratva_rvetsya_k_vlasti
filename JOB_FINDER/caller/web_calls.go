@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	_ "net/url"
+	url2 "net/url"
 	"strings"
 )
 
@@ -73,4 +75,13 @@ func (c *Caller) PostWithNoOpts(url string, body string) (string, error) {
 		return "", err
 	}
 	return string(responseBody), nil
+}
+
+func (c *Caller) UrlParseNoOpts(url string) (url2.URL, error) {
+	urlm, err := url2.Parse(url)
+	if err != nil {
+		c.logger.Warn(err)
+		return *urlm, err
+	}
+	return *urlm, nil
 }

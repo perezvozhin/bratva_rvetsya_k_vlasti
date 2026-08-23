@@ -3,11 +3,14 @@ package main
 import (
 	api_ "JOB_FINDER/api/rest"
 	"JOB_FINDER/api/view"
+	"JOB_FINDER/caller"
 	"JOB_FINDER/httpmw"
 	"JOB_FINDER/internals/FS_config"
 	"JOB_FINDER/internals/helper"
 	loggersystem "JOB_FINDER/internals/logger"
+	"JOB_FINDER/internals/repository/sqlite"
 	"JOB_FINDER/usr_service"
+	"JOB_FINDER/usr_service/parser"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -21,14 +24,15 @@ func main() {
 	router := chi.NewMux()
 
 	//инит вспом штук
-	//test
-	mcpCaller := caller.Init()
 	logger := loggersystem.Init()
+	mcpCaller := caller.Init(logger, "path")
 	cfg := FS_config.Init(logger)
+	CS_database := sqlite.NewVacancyRepo("database FIX")
 	CV := helper.CheckDirectoryForCV(cfg.PathFilesystem, logger)
 	//init services
-
-	CS_userService := usr_service.Init(logger, CV)
+	CS_parse := parser.NewParserService(mcpCaller, CS_database)
+	//зафикс + зафикс
+	CS_userService := usr_service.Init(logger, CV, CS_parse)
 
 	//временно
 	fmt.Println(CS_userService)

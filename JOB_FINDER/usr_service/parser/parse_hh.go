@@ -13,7 +13,7 @@ const (
 	userAgent = "HH-User-Agent"
 )
 
-func (c *ParserClient) ParseHH(log *zap.SugaredLogger) ([]domain.Vacancy, error) {
+func (p *ParserService) ParseHH(log *zap.SugaredLogger) ([]domain.Vacancy, error) {
 	// FIXME: переписать логику транспорта hh.ru -- попробовать завебскрапить???
 
 	// // FIXME: ынести в параметр функции
