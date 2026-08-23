@@ -6,11 +6,6 @@ import (
 	"time"
 )
 
-type ParserClient struct {
-	http.Client
-}
-
-// TODO Transport config
 func NewParserClient() *ParserClient {
 	proxyURL, err := url.Parse("https://46.47.197.210:3128")
 	if err != nil {

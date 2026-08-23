@@ -1,10 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"html/template"
-	"net/http"
-
 	api_ "JOB_FINDER/api/rest"
 	"JOB_FINDER/api/view"
 	"JOB_FINDER/httpmw"
@@ -12,6 +8,9 @@ import (
 	"JOB_FINDER/internals/helper"
 	loggersystem "JOB_FINDER/internals/logger"
 	"JOB_FINDER/usr_service"
+	"fmt"
+	"html/template"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -22,8 +21,10 @@ func main() {
 	router := chi.NewMux()
 
 	//инит вспом штук
+	//test
+	mcpCaller := caller.Init()
 	logger := loggersystem.Init()
-	cfg := FS_config.Init()
+	cfg := FS_config.Init(logger)
 	CV := helper.CheckDirectoryForCV(cfg.PathFilesystem, logger)
 	//init services
 
@@ -56,8 +57,6 @@ func main() {
 		Addr:    ":" + cfg.Port,
 		Handler: router,
 	}
-
-	// FIXME feat: graceful shutdown
 	logger.Info("started server")
 	err := srv.ListenAndServe()
 	if err != nil {
