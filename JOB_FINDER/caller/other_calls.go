@@ -54,10 +54,12 @@ func (c *Caller) WritetoFile(text string, name string) error {
 		return err
 	}
 	defer file.Close()
-	_, err = file.WriteString(text)
-	if err != nil {
+
+	_, err = file.WriteString(text) // Запись текста в файл
+	if err != nil {                 // Проверка, успешно ли прошла запись
 		c.logger.Error(err)
 		return err
 	}
+	c.logger.Info("Запись на сервере и диске прошла успешно")
 	return nil
 }

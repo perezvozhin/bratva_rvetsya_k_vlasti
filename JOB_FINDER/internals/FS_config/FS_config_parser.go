@@ -12,6 +12,7 @@ type Config struct {
 	Port           string `envconfig:"PORT" default:"9090"`
 	Name           string `envconfig:"NAME" default:"JOB_FINDER"`
 	TimeZone       string `envconfig:"TIMEZONE" default:"UTC"`
+	LastUpdate     string `envconfig:"LASTUPDATE" required:"true"`
 }
 
 func newConfig() (*Config, error) {
