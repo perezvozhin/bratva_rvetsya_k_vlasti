@@ -45,3 +45,19 @@ func (c *Caller) CallWinApplication(name string) {
 	}
 	c.logger.Info(name + " закрыт")
 }
+
+func (c *Caller) WritetoFile(text string, name string) error {
+	file, err := os.OpenFile(c.path+name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+	defer file.Close()
+	_, err = file.WriteString(text)
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+	return nil
+}
