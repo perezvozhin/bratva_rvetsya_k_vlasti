@@ -9,3 +9,8 @@ type RetvalsInCV struct {
 	file     *os.File
 	contains string
 }
+
+type FileChoose struct {
+	File *os.File
+	Text string
+}

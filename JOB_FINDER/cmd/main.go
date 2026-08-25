@@ -4,6 +4,7 @@ import (
 	api_ "JOB_FINDER/api/rest"
 	"JOB_FINDER/api/view"
 	"JOB_FINDER/caller"
+	"JOB_FINDER/gem_service"
 	"JOB_FINDER/httpmw"
 	"JOB_FINDER/internals/FS_config"
 	"JOB_FINDER/internals/helper"
@@ -11,7 +12,7 @@ import (
 	"JOB_FINDER/internals/repository/sqlite"
 	"JOB_FINDER/usr_service"
 	"JOB_FINDER/usr_service/parser"
-	"fmt"
+	"context"
 	"html/template"
 	"net/http"
 	"time"
@@ -33,11 +34,13 @@ func main() {
 	//init services
 	CS_parse := parser.NewParserService(mcpCaller, CS_database)
 	//зафикс + зафикс
-	CS_userService := usr_service.Init(logger, CV, CS_parse)
+	CS_userService := usr_service.Init(logger, CV, CS_parse, mcpCaller)
 
+	MCP := caller.Init(logger, "path")
+
+	CS_gemService := gem_service.Init(context.Background(), MCP, cfg.ApiKey)
 	//временно
 
-	fmt.Println(CS_userService)
 	//статика (html + css)
 	helper.GetStatic(router, logger)
 	//статика (js)
@@ -54,8 +57,9 @@ func main() {
 		//апи для ввода ключа к гемини (триггерится в случае, если строка конфига пуста)
 		//смотри логику в httpmw.ApiCheckMiddleWare(cfg.ApiKey)
 		r.Use(httpmw.ApiCheckMiddleWare(cfg.ApiKey))
-		r.Handle("/", view.MainPageDrawer(tmplparser))
+		r.Handle("/", view.MainPageDrawer(CS_gemService, tmplparser))
 		//инициализируем апи для парсинга
+		r.Handle()
 		r.Handle("/parse", api_.ParseApi(CS_userService))
 	})
 

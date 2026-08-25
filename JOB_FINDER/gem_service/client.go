@@ -25,6 +25,7 @@ func (g *GeminiService) CreateChat(ctx context.Context, model string) (*genai.Ch
 	if err != nil {
 		g.logger.Error("Couldn't create a new chat: ", err)
 	}
+
 	return chat, err
 }
 

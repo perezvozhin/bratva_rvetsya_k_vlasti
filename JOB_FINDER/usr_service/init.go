@@ -1,6 +1,7 @@
 package usr_service
 
 import (
+	"JOB_FINDER/caller"
 	"JOB_FINDER/usr_service/parser"
 	"os"
 
@@ -8,12 +9,13 @@ import (
 )
 
 type Usr_service struct {
+	MCP           *caller.Caller
 	logger        *zap.SugaredLogger
 	cv            *os.File
 	ParserService *parser.ParserService
 }
 
-func Init(logger *zap.SugaredLogger, cv *os.File, ParserService *parser.ParserService) *Usr_service {
+func Init(logger *zap.SugaredLogger, cv *os.File, ParserService *parser.ParserService, caller *caller.Caller) *Usr_service {
 
-	return &Usr_service{logger: logger, cv: cv, ParserService: ParserService}
+	return &Usr_service{logger: logger, cv: cv, ParserService: ParserService, MCP: caller}
 }

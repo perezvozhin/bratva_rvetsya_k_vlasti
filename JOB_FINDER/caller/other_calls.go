@@ -1,6 +1,8 @@
 package caller
 
 import (
+	"JOB_FINDER/usr_service"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -48,22 +50,32 @@ func (c *Caller) CallWinApplication(name string) {
 	c.logger.Info(name + " закрыт")
 }
 
-func (c *Caller) WritetoFile(text string, name string) error {
+func (c *Caller) WritetoFile(text string, name string) (usr_service.FileChoose, error) {
+	var retVal usr_service.FileChoose
+
 	file, err := os.OpenFile(c.path+name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return retVal, err
 	}
 	defer file.Close()
 
 	_, err = file.WriteString(text) // Запись текста в файл
 	if err != nil {                 // Проверка, успешно ли прошла запись
 		c.logger.Error(err)
-		return err
+		return retVal, err
 	}
 	c.logger.Info("Запись на сервере и диске прошла успешно")
-	return nil
+
+	readFile, err := os.ReadFile(file.Name())
+	if err != nil {
+		c.logger.Error(err)
+		return retVal, err
+	}
+	retVal.File = file
+	retVal.Text = string(readFile)
+	return retVal, nil
 }
 
 func (c *Caller) openFile(path string) (io.Reader, error) {
