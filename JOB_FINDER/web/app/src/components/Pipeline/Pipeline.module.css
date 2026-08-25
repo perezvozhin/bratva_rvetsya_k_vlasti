@@ -1,0 +1,57 @@
+.pipeline {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 90px;
+  min-width: 0;
+}
+
+.count {
+  font-size: 20px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.bar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin-top: 3px;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.neutral {
+  background: var(--tone-neutral);
+}
+
+.info {
+  background: var(--tone-info);
+}
+
+.good {
+  background: var(--match-green);
+}
+
+.warn {
+  background: var(--match-yellow);
+}
+
+.bad {
+  background: var(--match-red);
+}

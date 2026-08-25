@@ -1,0 +1,50 @@
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.title {
+  font-family: var(--serif);
+  font-size: 42px;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.source {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 30px;
+  }
+}
