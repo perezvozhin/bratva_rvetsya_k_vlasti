@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -26,7 +27,7 @@ func main() {
 	//инит вспом штук
 	logger := loggersystem.Init()
 	mcpCaller := caller.Init(logger, "path")
-	cfg := FS_config.Init(logger)
+	cfg := FS_config.Init()
 	CS_database := sqlite.NewVacancyRepo("database FIX")
 	CV := helper.CheckDirectoryForCV(cfg.PathFilesystem, logger)
 	//init services
@@ -67,6 +68,23 @@ func main() {
 		logger.Fatal("error starting server", "error", err)
 		panic(err)
 	}
+
+	go func() {
+		for {
+			cfg := FS_config.Init()
+			cfgTime, _ := time.Parse(time.RFC3339, cfg.LastUpdate)
+			now := time.Now()
+
+			if now.Before(cfgTime.AddDate(0, 0, 7)) {
+				time.Sleep(1 * time.Hour)
+				continue
+			}
+			logger.Info("Прошло 7 дней")
+			usr_service.Synctime(logger)
+
+			time.Sleep(1 * time.Hour)
+		}
+	}()
 }
 
 // вова
