@@ -36,6 +36,7 @@ func main() {
 	CS_userService := usr_service.Init(logger, CV, CS_parse)
 
 	//временно
+
 	fmt.Println(CS_userService)
 	//статика (html + css)
 	helper.GetStatic(router, logger)
@@ -54,7 +55,8 @@ func main() {
 		//смотри логику в httpmw.ApiCheckMiddleWare(cfg.ApiKey)
 		r.Use(httpmw.ApiCheckMiddleWare(cfg.ApiKey))
 		r.Handle("/", view.MainPageDrawer(tmplparser))
-
+		//инициализируем апи для парсинга
+		r.Handle("/parse", api_.ParseApi(CS_userService))
 	})
 
 	//добавим чи, как мультиплексер

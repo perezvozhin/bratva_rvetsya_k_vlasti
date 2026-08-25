@@ -14,7 +14,9 @@ type Caller struct {
 
 // создаем простой клиент
 func Init(logs *zap.SugaredLogger, path string) *Caller {
-	client := &http.Client{}
+	client := &http.Client{
+		//ждать ответ 5 сек
+	}
 
 	return &Caller{client: client, logger: logs, path: path}
 }

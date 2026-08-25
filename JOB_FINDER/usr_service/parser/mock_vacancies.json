@@ -1,6 +1,7 @@
 {
   "items": [
     {
+
       "id": "100200300",
       "name": "Golang Developer (Intern / Junior)",
       "alternate_url": "https://hh.ru/vacancy/100200300",
@@ -15,8 +16,11 @@
       "snippet": {
         "requirement": "Базовые знания Go, понимание SQL и реляционных баз данных.",
         "responsibility": "Разработка внутренних сервисов, написание тестов."
-      }
+      },
     },
+
+
+
     {
       "id": "100200301",
       "name": "Junior Backend Go",

@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+
+	"go.uber.org/zap"
 )
 
 func (c *Caller) ReadFromFileName(name string) (string, error) {
@@ -62,4 +64,15 @@ func (c *Caller) WritetoFile(text string, name string) error {
 	}
 	c.logger.Info("Запись на сервере и диске прошла успешно")
 	return nil
+}
+
+func (c *Caller) openFile(path string) (io.Reader, error) {
+	file, err := os.Open(path)
+	if err != nil {
+
+		c.logger.Error(err)
+		return nil, err
+	}
+	c.logger.Info("file opened", zap.String("filename", path))
+	return file, nil
 }
