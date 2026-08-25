@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon } from '../../icons/Icons'
+import { ArrowLeftIcon, ArrowRightIcon } from '../../icons/Icons.jsx'
 import s from './Pager.module.css'
 
 export default function Pager({ from, shownCount, total, page, pageCount, onGo }) {

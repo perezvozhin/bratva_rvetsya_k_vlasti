@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import VacancyCard from '../VacancyCard/VacancyCard'
-import Pager from '../Pager/Pager'
+import VacancyCard from '../VacancyCard/VacancyCard.jsx'
+import Pager from '../Pager/Pager.jsx'
 import s from './VacancyList.module.css'
 import common from '../../shared/common.module.css'
 // import { saveMark } from '../../api'

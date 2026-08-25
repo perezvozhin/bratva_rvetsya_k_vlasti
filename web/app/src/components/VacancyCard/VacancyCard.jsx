@@ -1,5 +1,5 @@
-import { CheckIcon, PlusIcon } from '../../icons/Icons'
-import { toneOf, verdictOf, formatScore } from '../../shared/score'
+import { CheckIcon, PlusIcon } from '../../icons/Icons.jsx'
+import { toneOf, verdictOf, formatScore } from '../../shared/score.js'
 import s from './VacancyCard.module.css'
 
 export default function VacancyCard({ vacancy, marked, onToggle }) {

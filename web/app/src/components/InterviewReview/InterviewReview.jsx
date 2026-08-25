@@ -1,4 +1,4 @@
-import { RecordIcon } from '../../icons/Icons'
+import { RecordIcon } from '../../icons/Icons.jsx'
 import s from './InterviewReview.module.css'
 import common from '../../shared/common.module.css'
 

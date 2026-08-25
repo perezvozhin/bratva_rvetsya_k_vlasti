@@ -1,12 +1,12 @@
 import s from './App.module.css'
 
-import Header from './components/Header/Header'
-import Stats from './components/Stats/Stats'
-import VacancyList from './components/VacancyList/VacancyList'
-import Pipeline from './components/Pipeline/Pipeline'
-import InterviewReview from './components/InterviewReview/InterviewReview'
-import Events from './components/Events/Events'
-import Helpers from './components/Helpers/Helpers'
+import Header from './components/Header/Header.jsx'
+import Stats from './components/Stats/Stats.jsx'
+import VacancyList from './components/VacancyList/VacancyList.jsx'
+import Pipeline from './components/Pipeline/Pipeline.jsx'
+import InterviewReview from './components/InterviewReview/InterviewReview.jsx'
+import Events from './components/Events/Events.jsx'
+import Helpers from './components/Helpers/Helpers.jsx'
 
 import {
   MOCK_HEADER,
@@ -16,7 +16,7 @@ import {
   MOCK_INTERVIEW,
   MOCK_EVENTS,
   MOCK_HELPERS,
-} from './mocks/data'
+} from './mocks/data.js'
 
 // данные пока из моков, запросы лежат в api.js
 export default function App() {
