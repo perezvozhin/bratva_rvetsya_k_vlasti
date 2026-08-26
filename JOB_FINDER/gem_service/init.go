@@ -3,15 +3,25 @@ package gem_service
 import (
 	"JOB_FINDER/caller"
 	"context"
+	"sync"
 
 	"go.uber.org/zap"
 	"google.golang.org/genai"
 )
 
+type session struct {
+	chat  *genai.Chat
+	mu    sync.Mutex
+	model string
+	name  string
+}
+
 type GeminiService struct {
 	caller *caller.Caller
 	client *genai.Client
 	logger *zap.SugaredLogger
+	mu     sync.Mutex
+	chats  map[string]*session
 }
 
 func Init(ctx context.Context, caller *caller.Caller, apiKey string) *GeminiService {
@@ -29,5 +39,6 @@ func Init(ctx context.Context, caller *caller.Caller, apiKey string) *GeminiServ
 		caller: caller,
 		client: client,
 		logger: cLogger,
+		chats:  make(map[string]*session),
 	}
 }
