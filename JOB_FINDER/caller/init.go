@@ -20,3 +20,9 @@ func Init(logs *zap.SugaredLogger, path string) *Caller {
 
 	return &Caller{client: client, logger: logs, path: path}
 }
+func (c *Caller) GetterClient() *http.Client {
+	return c.client
+}
+func (c *Caller) GetterLogger() *zap.SugaredLogger {
+	return c.logger
+}
