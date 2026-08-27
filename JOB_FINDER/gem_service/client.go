@@ -9,10 +9,9 @@ import (
 // one method per Gemini endpoint, uses caller
 
 func (g *GeminiService) UploadVideo(ctx context.Context, path string) (UploadFileStatus, error) {
-	//return io.ReaderCloser for video file, error if not found
+	//return *os.File(to read and close) for video file, error if not found
 	file, err := g.caller.OpenFile(path)
 	if err != nil {
-		//err should be logged in openfile
 		return UploadFileStatus{}, err
 	}
 	defer file.Close()

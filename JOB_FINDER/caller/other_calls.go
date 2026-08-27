@@ -2,7 +2,6 @@ package caller
 
 import (
 	"JOB_FINDER/usr_service"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -78,7 +77,7 @@ func (c *Caller) WritetoFile(text string, name string) (usr_service.FileChoose, 
 	return retVal, nil
 }
 
-func (c *Caller) openFile(path string) (io.Reader, error) {
+func (c *Caller) OpenFile(path string) (*os.File, error) {
 	file, err := os.Open(path)
 	if err != nil {
 
