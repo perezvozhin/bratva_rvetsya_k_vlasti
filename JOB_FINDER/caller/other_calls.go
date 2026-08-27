@@ -1,9 +1,12 @@
 package caller
 
 import (
+	"JOB_FINDER/usr_service"
 	"io/ioutil"
 	"os"
 	"os/exec"
+
+	"go.uber.org/zap"
 )
 
 func (c *Caller) ReadFromFileName(name string) (string, error) {
@@ -46,20 +49,41 @@ func (c *Caller) CallWinApplication(name string) {
 	c.logger.Info(name + " закрыт")
 }
 
-func (c *Caller) WritetoFile(text string, name string) error {
+func (c *Caller) WritetoFile(text string, name string) (usr_service.FileChoose, error) {
+	var retVal usr_service.FileChoose
+
 	file, err := os.OpenFile(c.path+name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return retVal, err
 	}
 	defer file.Close()
 
 	_, err = file.WriteString(text) // Запись текста в файл
 	if err != nil {                 // Проверка, успешно ли прошла запись
 		c.logger.Error(err)
-		return err
+		return retVal, err
 	}
 	c.logger.Info("Запись на сервере и диске прошла успешно")
-	return nil
+
+	readFile, err := os.ReadFile(file.Name())
+	if err != nil {
+		c.logger.Error(err)
+		return retVal, err
+	}
+	retVal.File = file
+	retVal.Text = string(readFile)
+	return retVal, nil
+}
+
+func (c *Caller) OpenFile(path string) (*os.File, error) {
+	file, err := os.Open(path)
+	if err != nil {
+
+		c.logger.Error(err)
+		return nil, err
+	}
+	c.logger.Info("file opened", zap.String("filename", path))
+	return file, nil
 }
