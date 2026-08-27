@@ -28,6 +28,13 @@ func fromContents(content []*genai.Content) []Message {
 			m.Text += part.Text
 			//TODO: add check if its not a text answer(mimetype)
 		}
+
+		//concatenate model response(if streamed in chunks)
+		//continue skips appending it to msgs until whole msg is sent
+		if n := len(msgs); n > 0 && c.Role == "model" && msgs[n-1].Role == "model" {
+			msgs[n-1].Text += m.Text
+			continue
+		}
 		msgs = append(msgs, m)
 	}
 
@@ -51,7 +58,7 @@ func (g *GeminiService) saveHistory(s *session) error {
 	h := ChatHistory{
 		Model:     s.model,
 		ChatName:  s.name,
-		Messages:  fromContents(s.chat.History(true)),
+		Messages:  fromContents(s.chat.History(false)),
 		UpdatedAt: time.Now(),
 	}
 	return g.caller.SaveJSON(historyFile(s.name), h)

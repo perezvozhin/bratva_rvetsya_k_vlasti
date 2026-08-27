@@ -1,14 +1,15 @@
 package usr_service
 
 import (
-	"bratva_rvetsya_k_vlasti/JOB_FINDER/internals/FS_config"
+	"JOB_FINDER/internals/FS_config"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"os"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type TimeResponse struct {

@@ -52,7 +52,7 @@ func (g *GeminiService) session(ctx context.Context, chatName string) (*session,
 
 	model := history.Model
 	if model == "" {
-		model = "gemini-3.7-flash" //TODO: load default value
+		model = "gemini-3.5-flash-lite" //TODO: load default value
 	}
 
 	chat, err := g.client.Chats.Create(ctx, model, nil, toContents(history.Messages))
@@ -100,10 +100,18 @@ func (g *GeminiService) Ask(ctx context.Context, chatName, text string) (<-chan 
 		if !ok {
 			return
 		}
+		//TODO: manual injection after each successful prompt...
+		// is it possible to automate this(interactions API)
+		msgs := fromContents(s.chat.History(false)) // comprehensive, not curated
+		s.chat, _ = g.client.Chats.Create(ctx, s.model, nil, toContents(msgs))
 
 		if err := g.saveHistory(s); err != nil {
 			g.logger.Error("couldn't save history for "+s.name+": ", err)
 		}
+		// g.logger.Infow("history after turn",
+		// 	"chat", s.name,
+		// 	"curated", len(s.chat.History(true)),
+		// 	"comprehensive", len(s.chat.History(false)))
 	}()
 
 	return ch, nil
