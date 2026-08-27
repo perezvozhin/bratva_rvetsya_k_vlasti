@@ -1,0 +1,82 @@
+.row {
+  display: flex;
+  gap: 12px;
+  max-width: 760px;
+}
+
+.user {
+  composes: row;
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+
+.avatarUser {
+  composes: avatar from '../../shared/common.module.css';
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+.avatarModel {
+  composes: avatar from '../../shared/common.module.css';
+  background: var(--surface-strong);
+  color: var(--accent-hover);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stackUser {
+  composes: stack;
+  align-items: flex-end;
+}
+
+.bubble {
+  padding: 11px 14px;
+  border-radius: 14px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bubbleUser {
+  composes: bubble;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-bottom-right-radius: 4px;
+}
+
+.bubbleModel {
+  composes: bubble;
+  background: var(--surface);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+
+.caret {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  margin-left: 2px;
+  vertical-align: -2px;
+  border-radius: 1px;
+  background: var(--accent);
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+}
