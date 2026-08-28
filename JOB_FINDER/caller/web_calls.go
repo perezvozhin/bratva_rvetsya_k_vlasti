@@ -2,86 +2,76 @@ package caller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
-	"io/ioutil"
-	_ "net/url"
-	url2 "net/url"
+	"net/url"
 	"strings"
 )
 
-func (c *Caller) GetWithNoOpts(url string) (string, error) {
-	/*
-		Отправляет GET запрос на выбранный url
-		без дополнительных параметров
-	*/
-	resp, err := c.client.Get(url)
+// TODO (DEPRECATED): Метод временно не используется
+func (c *Caller) GetWithNoOpts(rawURL string) (string, error) {
+	resp, err := c.client.Get(rawURL)
 	if err != nil {
 		c.logger.Warn(err)
-		return "", err
+		return "", fmt.Errorf("failed to send GET-request: %w", err)
 	}
 	defer resp.Body.Close()
-	defer c.client.CloseIdleConnections()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		c.logger.Warn(err)
-		return "", err
-
+		return "", fmt.Errorf("failed to read body: %w", err)
 	}
 	return string(body), nil
 }
-func (c *Caller) GetWithResponse(url string) (map[string]interface{}, error) {
-	/*
-		Отправляет GET запрос на выбранный url
-		возвращает ответ в формате map[string]interface{}
-	*/
-	var respMap map[string]interface{}
-	resp, err := c.client.Get(url)
+
+// TODO (DEPRECATED): Метод временно не используется
+func (c *Caller) GetWithResponse(rawURL string, target interface{}) error {
+	resp, err := c.client.Get(rawURL)
 	if err != nil {
 		c.logger.Warn(err)
-		return respMap, err
+		return fmt.Errorf("failed to send GET-request: %w", err)
 	}
 	defer resp.Body.Close()
-	defer c.client.CloseIdleConnections()
 
 	body, err := io.ReadAll(resp.Body)
-
-	err = json.Unmarshal(body, &respMap)
 	if err != nil {
 		c.logger.Warn(err)
-		return respMap, err
-
+		return fmt.Errorf("failed to read body: %w", err)
 	}
-	return respMap, nil
-}
-func (c *Caller) PostWithNoOpts(url string, body string) (string, error) {
-	/*
-		Отправляет POST запрос на выбранный url
-		без дополнительных параметров
-		content-type  по дефолту укзан, как application/json
-	*/
 
-	BodyToIoreader := strings.NewReader(body)
-	response, err := c.client.Post(url, "application/json", BodyToIoreader)
+	err = json.Unmarshal(body, target)
 	if err != nil {
 		c.logger.Warn(err)
-		return "", err
+		return err
+	}
+	return nil
+}
+
+// TODO (DEPRECATED): Метод временно не используется
+func (c *Caller) PostWithNoOpts(rawURL string, body string) (string, error) {
+	postBody := strings.NewReader(body)
+	response, err := c.client.Post(rawURL, "application/json", postBody)
+	if err != nil {
+		c.logger.Warn(err)
+		return "", fmt.Errorf("failed to send POST-request: %w", err)
 	}
 	defer response.Body.Close()
-	defer c.client.CloseIdleConnections()
-	responseBody, err := ioutil.ReadAll(response.Body)
+
+	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		c.logger.Warn(err)
-		return "", err
+		return "", fmt.Errorf("failed to read body: %w", err)
 	}
 	return string(responseBody), nil
 }
 
-func (c *Caller) UrlParseNoOpts(url string) (url2.URL, error) {
-	urlm, err := url2.Parse(url)
+// TODO (DEPRECATED): Метод временно не используется
+func (c *Caller) URLParseNoOpts(rawURL string) (url.URL, error) {
+	urlm, err := url.Parse(rawURL)
 	if err != nil {
 		c.logger.Warn(err)
-		return *urlm, err
+		return url.URL{}, fmt.Errorf("failed to parse URL: %w", err)
 	}
 	return *urlm, nil
 }

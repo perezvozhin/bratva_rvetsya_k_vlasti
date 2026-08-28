@@ -19,7 +19,7 @@ func main() {
 
 	cfg := config.NewConfigMust()
 
-	mcp := caller.Init(logger, "path")
+	mcp := caller.NewCaller(logger)
 	_ = gem_service.Init(context.Background(), mcp, cfg.APIKey)
 
 	router.Group(func(r chi.Router) {

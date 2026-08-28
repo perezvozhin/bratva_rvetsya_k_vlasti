@@ -1,89 +1,110 @@
 package caller
 
 import (
-	"JOB_FINDER/usr_service"
-	"io/ioutil"
+	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"os/exec"
 
 	"go.uber.org/zap"
 )
 
-func (c *Caller) ReadFromFileName(name string) (string, error) {
-	/*
-		чтение из указаного файла
-		возвращает содержимое в формате строки
-	*/
-
-	file, err := os.Open(c.path + name)
+// TODO (DEPRECATED): Метод временно не используется
+func (c *Caller) ReadFromFileName(filepath string) (string, error) {
+	file, err := os.Open(filepath)
 	if err != nil {
 		c.logger.Error(err)
-		return "", err
+		return "", fmt.Errorf("failed to open the file: %w", err)
 	}
 	defer file.Close()
-	content, err := ioutil.ReadAll(file)
+
+	content, err := io.ReadAll(file)
 	if err != nil {
 		c.logger.Error(err)
-		return "", err
+		return "", fmt.Errorf("failed to read the file: %w", err)
 	}
+
 	return string(content), nil
 }
 
+// TODO (DEPRECATED): Метод временно не используется
 func (c *Caller) CallWinApplication(name string) {
-	/*
-		Функция для запуска Windows
-		приложения из командной строки
-
-	*/
-
 	cmd := exec.Command(name)
 	if err := cmd.Run(); err != nil {
 		c.logger.Error(err)
 		return
 	}
-	err := cmd.Wait()
-	if err != nil {
+
+	if err := cmd.Wait(); err != nil {
 		c.logger.Error(err)
 		return
 	}
-	c.logger.Info(name + " закрыт")
+
+	c.logger.Info(name + " открыт")
 }
 
-func (c *Caller) WritetoFile(text string, name string) (usr_service.FileChoose, error) {
-	var retVal usr_service.FileChoose
-
-	file, err := os.OpenFile(c.path+name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-
+// TODO (DEPRECATED): Метод временно не используется
+func (c *Caller) WriteToFile(filepath string, text string) error {
+	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		c.logger.Error(err)
-		return retVal, err
+		return fmt.Errorf("failed to open the file: %w", err)
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(text) // Запись текста в файл
-	if err != nil {                 // Проверка, успешно ли прошла запись
+	if _, err = file.WriteString(text); err != nil {
 		c.logger.Error(err)
-		return retVal, err
+		return fmt.Errorf("failed to write string to file: %w", err)
 	}
-	c.logger.Info("Запись на сервере и диске прошла успешно")
-
-	readFile, err := os.ReadFile(file.Name())
-	if err != nil {
-		c.logger.Error(err)
-		return retVal, err
-	}
-	retVal.File = file
-	retVal.Text = string(readFile)
-	return retVal, nil
+	c.logger.Info("Text succesfully written to file", zap.String("filepath", filepath))
+	return nil
 }
 
-func (c *Caller) OpenFile(path string) (*os.File, error) {
-	file, err := os.Open(path)
+func (c *Caller) OpenFile(filepath string) (*os.File, error) {
+	file, err := os.Open(filepath)
 	if err != nil {
-
 		c.logger.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("failed to open the file: %w", err)
 	}
-	c.logger.Info("file opened", zap.String("filename", path))
+
+	c.logger.Info("file opened", zap.String("filename", filepath))
 	return file, nil
+}
+
+func (c *Caller) SaveJSON(filepath string, data interface{}) error {
+	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		c.logger.Error(err)
+		return fmt.Errorf("failed to open the file: %w", err)
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(data); err != nil {
+		c.logger.Error(err)
+		return fmt.Errorf("failed to encode data: %w", err)
+	}
+
+	c.logger.Info("JSON succesfully loaded", zap.String("filepath", filepath))
+	return nil
+}
+
+func (c *Caller) LoadJSON(filepath string, v interface{}) error {
+	file, err := c.OpenFile(filepath)
+	if err != nil {
+		c.logger.Error(err)
+		return fmt.Errorf("failed to open the file: %w", err)
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(v); err != nil {
+		c.logger.Error(err)
+		return fmt.Errorf("failed to decode data: %w", err)
+	}
+
+	c.logger.Info("JSON succesfully loaded", zap.String("filepath", filepath))
+	return nil
 }

@@ -25,8 +25,8 @@ type GeminiService struct {
 }
 
 func Init(ctx context.Context, caller *caller.Caller, apiKey string) *GeminiService {
-	cClient := caller.GetterClient()
-	cLogger := caller.GetterLogger()
+	cClient := caller.Client()
+	cLogger := caller.Logger()
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey:     apiKey,
 		Backend:    genai.BackendGeminiAPI,

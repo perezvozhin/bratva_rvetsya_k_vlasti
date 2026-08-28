@@ -1,4 +1,6 @@
 ## Запуск каждого таргета осуществляется с корня рабочей директории!
+include .env
+export
 
 export PROJECT_ROOT=${shell pwd}
 
