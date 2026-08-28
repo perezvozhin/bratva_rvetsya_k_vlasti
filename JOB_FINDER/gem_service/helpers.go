@@ -3,6 +3,8 @@ package gem_service
 import (
 	"errors"
 	"io/fs"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"google.golang.org/genai"
@@ -24,10 +26,12 @@ func fromContents(content []*genai.Content) []Message {
 
 	for _, c := range content {
 		m := Message{Role: c.Role}
+		var sb strings.Builder
 		for _, part := range c.Parts {
-			m.Text += part.Text
+			sb.WriteString(part.Text)
 			//TODO: add check if its not a text answer(mimetype)
 		}
+		m.Text = sb.String()
 		msgs = append(msgs, m)
 	}
 
@@ -36,7 +40,7 @@ func fromContents(content []*genai.Content) []Message {
 
 func (g *GeminiService) loadHistory(chatName string) (ChatHistory, error) {
 	var h ChatHistory
-	err := g.caller.LoadJSON(historyFile(chatName), &h)
+	err := g.caller.LoadJSON(g.historyFile(chatName), &h)
 	if errors.Is(err, fs.ErrNotExist) {
 		return ChatHistory{}, nil
 	}
@@ -54,9 +58,9 @@ func (g *GeminiService) saveHistory(s *session) error {
 		Messages:  fromContents(s.chat.History(true)),
 		UpdatedAt: time.Now(),
 	}
-	return g.caller.SaveJSON(historyFile(s.name), h)
+	return g.caller.SaveJSON(g.historyFile(s.name), h)
 }
 
-func historyFile(chatName string) string {
-	return "chat_" + chatName + "_history.json"
+func (g *GeminiService) historyFile(chatName string) string {
+	return filepath.Join(g.chatsDir, "chat_"+chatName+"_history.json")
 }

@@ -36,6 +36,9 @@ func (g *GeminiService) UploadVideo(ctx context.Context, path string) (UploadFil
 	return res, nil
 }
 
+// TODO (?): вынести в .env  или оставить константу
+const defaultModel = "gemini-1.5-flash"
+
 // loads a chat session(if active - from map, or last saved from json, if json empty - empty history)
 func (g *GeminiService) session(ctx context.Context, chatName string) (*session, error) {
 	g.mu.Lock()
@@ -52,7 +55,7 @@ func (g *GeminiService) session(ctx context.Context, chatName string) (*session,
 
 	model := history.Model
 	if model == "" {
-		model = "gemini-3.7-flash" //TODO: load default value
+		model = defaultModel
 	}
 
 	chat, err := g.client.Chats.Create(ctx, model, nil, toContents(history.Messages))

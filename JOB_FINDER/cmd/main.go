@@ -20,7 +20,7 @@ func main() {
 	cfg := config.NewConfigMust()
 
 	mcp := caller.NewCaller(logger)
-	_ = gem_service.Init(context.Background(), mcp, cfg.APIKey)
+	_ = gem_service.NewGeminiService(context.Background(), mcp, cfg.APIKey, cfg.PathToChats)
 
 	router.Group(func(r chi.Router) {
 		// апи для ввода ключа к гемини
