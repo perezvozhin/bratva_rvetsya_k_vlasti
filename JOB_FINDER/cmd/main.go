@@ -6,6 +6,7 @@ import (
 	"JOB_FINDER/httpmw"
 	config "JOB_FINDER/internals/FS_config"
 	loggersystem "JOB_FINDER/internals/logger"
+	"JOB_FINDER/storage"
 	"context"
 	"net/http"
 
@@ -21,6 +22,12 @@ func main() {
 
 	mcp := caller.NewCaller(logger)
 	_ = gem_service.NewGeminiService(context.Background(), mcp, cfg.APIKey, cfg.PathToChats)
+
+	_, err := storage.NewStore(cfg.PathToInterview, logger)
+	if err != nil {
+		logger.Fatal("failed to init storage", "err", err)
+		panic(err)
+	}
 
 	router.Group(func(r chi.Router) {
 		// апи для ввода ключа к гемини

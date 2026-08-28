@@ -62,7 +62,8 @@ func (s *Store) Scan() error {
 		extension := filepath.Ext(file.Name())
 		metadata := strings.TrimSuffix(file.Name(), extension) + ".json"
 		metadataPath := filepath.Join(s.dir, metadata)
-		if extension == ".mp4" {
+		switch extension {
+		case ".mp4":
 			_, err = os.Stat(metadataPath)
 			if os.IsNotExist(err) {
 				//create metadata file
@@ -77,8 +78,7 @@ func (s *Store) Scan() error {
 					return err
 				}
 			}
-		}
-		if extension == ".json" {
+		case ".json":
 			//call load metadata here
 			err = s.load(metadataPath)
 			if err != nil {
@@ -138,3 +138,13 @@ func (s *Store) load(file string) error {
 
 	return err
 }
+
+// TODO: Реализовать привязку локального видео к загруженному файлу в облаке Gemini.
+//
+// Зачем: Когда мы грузим видео через gem_service.UploadVideo, Гугл возвращает нам 
+// свой внутренний ID файла (genaiFile.Name). Нам нужно сохранять этот ID в наш локальный 
+// .json (в поле GeminiChatID). Иначе при перезапуске сервера мы забудем, что видео 
+// уже в облаке, и будем каждый раз заново выгружать по 500 МБ.
+// 
+// Сигнатура:
+// func (s *Store) UpdateGeminiID(uuid string, geminiID string) error
