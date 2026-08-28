@@ -17,15 +17,16 @@ type session struct {
 }
 
 type GeminiService struct {
-	caller   *caller.Caller
-	client   *genai.Client
-	logger   *zap.SugaredLogger
-	mu       sync.Mutex
-	chats    map[string]*session
-	chatsDir string
+	caller       *caller.Caller
+	client       *genai.Client
+	logger       *zap.SugaredLogger
+	mu           sync.Mutex
+	chats        map[string]*session
+	chatsDir     string
+	defaultModel string
 }
 
-func NewGeminiService(ctx context.Context, caller *caller.Caller, apiKey string, chatsDir string) *GeminiService {
+func NewGeminiService(ctx context.Context, caller *caller.Caller, apiKey string, chatsDir string, defaultModel string) *GeminiService {
 	cClient := caller.Client()
 	cLogger := caller.Logger()
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
@@ -37,10 +38,11 @@ func NewGeminiService(ctx context.Context, caller *caller.Caller, apiKey string,
 		cLogger.Error("Failed to Initialize geminiService: ", err)
 	}
 	return &GeminiService{
-		caller:   caller,
-		client:   client,
-		logger:   cLogger,
-		chats:    make(map[string]*session),
-		chatsDir: chatsDir,
+		caller:       caller,
+		client:       client,
+		logger:       cLogger,
+		chats:        make(map[string]*session),
+		chatsDir:     chatsDir,
+		defaultModel: defaultModel,
 	}
 }

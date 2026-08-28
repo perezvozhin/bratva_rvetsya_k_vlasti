@@ -19,6 +19,7 @@ type UploadFileStatus struct {
 	ExpirationTime time.Time `json:"expirationTime,omitempty"`
 	State          FileState `json:"state,omitempty"`
 	Message        string    `json:"message,omitempty"`
+	FileURI        string    `json:"uri,omitempty"`
 }
 
 type StreamResponse struct {
@@ -38,4 +39,10 @@ type ChatHistory struct {
 	Model     string    `json:"model"`
 	Messages  []Message `json:"messages"`
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type Request struct {
+	Text     string `json:"text"`
+	FileURI  string `json:"fileUri"`
+	MIMEType string `json:"MIMEType"`
 }

@@ -8,9 +8,10 @@ import (
 
 type Config struct {
 	Port            string `envconfig:"PORT" default:"8080"`
-	APIKey          string `envconfig:"API_KEY" required:"true"`
-	PathToInterview string `envconfig:"PATH_TO_INTERVIEW" default:"./interviews/"`
-	PathToChats     string `envconfig:"PATH_TO_CHATS" default:"./chats/"`
+	APIKey          string `envconfig:"GEMINI_API_KEY" required:"true"`
+	PathToInterview string `envconfig:"PATH_TO_INTERVIEW" default:"../interviews/"`
+	PathToChats     string `envconfig:"PATH_TO_CHATS" default:"../chats/"`
+	DefaultModel    string `envconfig:"GEMINI_DEFAULT_MODEL" default:"gemini-3.1-flash-lite"`
 }
 
 func newConfig() (*Config, error) {

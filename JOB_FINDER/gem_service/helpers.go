@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io/fs"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"google.golang.org/genai"
@@ -26,12 +25,18 @@ func fromContents(content []*genai.Content) []Message {
 
 	for _, c := range content {
 		m := Message{Role: c.Role}
-		var sb strings.Builder
 		for _, part := range c.Parts {
-			sb.WriteString(part.Text)
+			m.Text += part.Text
 			//TODO: add check if its not a text answer(mimetype)
 		}
-		m.Text = sb.String()
+
+		//concatenate model response(if streamed in chunks)
+		//continue skips appending it to msgs until whole msg is sent
+		if n := len(msgs); n > 0 && c.Role == "model" && msgs[n-1].Role == "model" {
+			msgs[n-1].Text += m.Text
+			continue
+		}
+
 		msgs = append(msgs, m)
 	}
 

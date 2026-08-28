@@ -22,7 +22,7 @@ func main() {
 	cfg := config.NewConfigMust()
 
 	mcp := caller.NewCaller(logger)
-	gemService := gem_service.NewGeminiService(context.Background(), mcp, cfg.APIKey, cfg.PathToChats)
+	gemService := gem_service.NewGeminiService(context.Background(), mcp, cfg.APIKey, cfg.PathToChats, cfg.DefaultModel)
 
 	store, err := storage.NewStore(cfg.PathToInterview, logger)
 	if err != nil {

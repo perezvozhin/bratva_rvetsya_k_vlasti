@@ -1,12 +1,11 @@
 package gem_service
 
 import (
+	"JOB_FINDER/internals/domain"
 	"context"
 
 	"google.golang.org/genai"
 )
-
-// one method per Gemini endpoint, uses caller
 
 func (g *GeminiService) UploadVideo(ctx context.Context, path string) (UploadFileStatus, error) {
 	//return *os.File(to read and close) for video file, error if not found
@@ -29,15 +28,13 @@ func (g *GeminiService) UploadVideo(ctx context.Context, path string) (UploadFil
 		ExpirationTime: genaiFile.ExpirationTime,
 		State:          FileState(genaiFile.State),
 		Message:        "status: success",
+		FileURI:        genaiFile.URI,
 	}
 	//TODO: handle err message and happy path one
 	//Message:        genaiFile.Error.Message, not nil on err
 
 	return res, nil
 }
-
-// TODO (?): вынести в .env  или оставить константу
-const defaultModel = "gemini-1.5-flash"
 
 // loads a chat session(if active - from map, or last saved from json, if json empty - empty history)
 func (g *GeminiService) session(ctx context.Context, chatName string) (*session, error) {
@@ -55,7 +52,7 @@ func (g *GeminiService) session(ctx context.Context, chatName string) (*session,
 
 	model := history.Model
 	if model == "" {
-		model = defaultModel
+		model = g.defaultModel
 	}
 
 	chat, err := g.client.Chats.Create(ctx, model, nil, toContents(history.Messages))
@@ -69,7 +66,7 @@ func (g *GeminiService) session(ctx context.Context, chatName string) (*session,
 	return s, nil
 }
 
-func (g *GeminiService) Ask(ctx context.Context, chatName, text string) (<-chan StreamResponse, error) {
+func (g *GeminiService) Ask(ctx context.Context, chatName string, req domain.Request) (<-chan StreamResponse, error) {
 	s, err := g.session(ctx, chatName)
 	if err != nil {
 		return nil, err
@@ -84,7 +81,13 @@ func (g *GeminiService) Ask(ctx context.Context, chatName, text string) (<-chan 
 		defer s.mu.Unlock()
 
 		ok := true
-		for chunk, err := range s.chat.SendMessageStream(ctx, genai.Part{Text: text}) {
+		parts := []genai.Part{{Text: req.Text}}
+		if req.FileURI != "" {
+			parts = append([]genai.Part{{FileData: &genai.FileData{
+				FileURI: req.FileURI, MIMEType: req.MIMEType,
+			}}}, parts...)
+		}
+		for chunk, err := range s.chat.SendMessageStream(ctx, parts...) {
 			var resp StreamResponse
 			if err != nil {
 				ok = false
@@ -103,10 +106,18 @@ func (g *GeminiService) Ask(ctx context.Context, chatName, text string) (<-chan 
 		if !ok {
 			return
 		}
+		// TODO: manual injection after each successful prompt...
+		// is it possible to automate this(interactions API)
+		msgs := fromContents(s.chat.History(false)) // comprehensive, not curated
+		s.chat, _ = g.client.Chats.Create(ctx, s.model, nil, toContents(msgs))
 
 		if err := g.saveHistory(s); err != nil {
 			g.logger.Error("couldn't save history for "+s.name+": ", err)
 		}
+		// g.logger.Infow("history after turn",
+		//         "chat", s.name,
+		//         "curated", len(s.chat.History(true)),
+		//         "comprehensive", len(s.chat.History(false)))
 	}()
 
 	return ch, nil

@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"JOB_FINDER/gem_service"
+	"JOB_FINDER/internals/domain"
 	"JOB_FINDER/storage"
 
 	"github.com/go-chi/chi/v5"
@@ -33,7 +34,7 @@ func (h *ChatHandler) RegisterRoutes(r chi.Router) {
 	r.Post("/api/chats", h.postChats)
 	r.Get("/api/chats/{id}/messages", h.getMessages)
 	r.Delete("/api/chats/{id}", h.deleteChat)
-	r.Post("/api/chats/{chatId}/interview", h.postInterview)
+	r.Post("/api/chats/{chatId}/interview", h.postInterview) //FIXME? interview uploaded to shared storage, each chat can reference it by its fileUri
 	r.Post("/api/chats/{chatId}/messages", h.postMessage)
 }
 
@@ -55,7 +56,7 @@ func (h *ChatHandler) postChats(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/chats/{id}/messages
 func (h *ChatHandler) getMessages(w http.ResponseWriter, r *http.Request) {
-	// TODO: Убрать заглушку. Извлечь {id} из URL, прочитать 
+	// TODO: Убрать заглушку. Извлечь {id} из URL, прочитать
 	// соответствующий файл из папки chats/ и вернуть массив истории сообщений.
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte("[]"))
@@ -63,7 +64,7 @@ func (h *ChatHandler) getMessages(w http.ResponseWriter, r *http.Request) {
 
 // DELETE /api/chats/{id}
 func (h *ChatHandler) deleteChat(w http.ResponseWriter, r *http.Request) {
-	// TODO: Убрать заглушку. Реализовать удаление 
+	// TODO: Убрать заглушку. Реализовать удаление
 	// JSON-файла истории чата из папки chats/ по {id}.
 	w.WriteHeader(http.StatusOK)
 }
@@ -88,8 +89,8 @@ func (h *ChatHandler) postInterview(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// TODO 
-	// 1. Убрать os.CreateTemp. Видео нужно сохранять напрямую в папку interviews/ 
+	// TODO
+	// 1. Убрать os.CreateTemp. Видео нужно сохранять напрямую в папку interviews/
 	//    через методы пакета storage (чтобы создался metadata.json).
 	// 2. Полученный путь передать в UploadVideo.
 	// 3. После успешного UploadVideo вызвать h.store.UpdateGeminiID(UUID_видео, status.Name),
@@ -130,9 +131,7 @@ func (h *ChatHandler) postInterview(w http.ResponseWriter, r *http.Request) {
 func (h *ChatHandler) postMessage(w http.ResponseWriter, r *http.Request) {
 	chatID := chi.URLParam(r, "chatId")
 
-	var req struct {
-		Text string `json:"text"`
-	}
+	var req domain.Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorw("Decode JSON failed", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -150,7 +149,7 @@ func (h *ChatHandler) postMessage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	ch, err := h.gemService.Ask(r.Context(), chatID, req.Text)
+	ch, err := h.gemService.Ask(r.Context(), chatID, req)
 	if err != nil {
 		h.logger.Errorw("Ask failed", "error", err)
 		return
@@ -175,3 +174,4 @@ func (h *ChatHandler) postMessage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "data: [DONE]\n\n")
 	flusher.Flush()
 }
+
