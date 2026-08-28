@@ -1,4 +1,4 @@
-package FS_config
+package config
 
 import (
 	"fmt"
@@ -7,12 +7,10 @@ import (
 )
 
 type Config struct {
-	PathFilesystem string `envconfig:"PATH_TO_FILESYSTEM" required:"true"`
-	ApiKey         string `envconfig:"API_KEY" required:"true"`
-	Port           string `envconfig:"PORT" default:"9090"`
-	Name           string `envconfig:"NAME" default:"JOB_FINDER"`
-	TimeZone       string `envconfig:"TIMEZONE" default:"UTC"`
-	LastUpdate     string `envconfig:"LASTUPDATE" required:"true"`
+	Port            string `envconfig:"PORT" default:"8080"`
+	APIKey          string `envconfig:"API_KEY" required:"true"`
+	PathToInterview string `envconfig:"PATH_TO_INTERVIEW" default:"./interviews/"`
+	PathToChats     string `envconfig:"PATH_TO_CHATS" default:"./chats/"`
 }
 
 func newConfig() (*Config, error) {
@@ -23,9 +21,9 @@ func newConfig() (*Config, error) {
 	return &cfg, nil
 }
 
-// Init собирает конфигурацию и паникует при ошибке.
+// NewConfigMust собирает конфигурацию и паникует при ошибке.
 // Нет смысла в запуске приложения, если есть ошибки в конфиге (паттерн Must).
-func Init() *Config {
+func NewConfigMust() *Config {
 	cfg, err := newConfig()
 	if err != nil {
 		panic(fmt.Errorf("get FS config: %w", err))

@@ -36,8 +36,8 @@ goose-action-sqlite: ## SQLite: Применить команду миграци
 
 
 
-run-parser: ## Go: Запустить парсер
-	@go run -C ./JOB_FINDER ./cmd/parser/main.go
+run-app: ## Go: Запустить приложение
+	@go run -C ./JOB_FINDER ./cmd/main.go
 
 
 
