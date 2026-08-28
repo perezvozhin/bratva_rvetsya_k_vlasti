@@ -1,6 +1,7 @@
 package main
 
 import (
+	"JOB_FINDER/api"
 	"JOB_FINDER/caller"
 	"JOB_FINDER/gem_service"
 	"JOB_FINDER/httpmw"
@@ -21,17 +22,20 @@ func main() {
 	cfg := config.NewConfigMust()
 
 	mcp := caller.NewCaller(logger)
-	_ = gem_service.NewGeminiService(context.Background(), mcp, cfg.APIKey, cfg.PathToChats)
+	gemService := gem_service.NewGeminiService(context.Background(), mcp, cfg.APIKey, cfg.PathToChats)
 
-	_, err := storage.NewStore(cfg.PathToInterview, logger)
+	store, err := storage.NewStore(cfg.PathToInterview, logger)
 	if err != nil {
 		logger.Fatal("failed to init storage", "err", err)
 		panic(err)
 	}
 
+	chatHandler := api.NewChatHandler(gemService, store, logger)
+
 	router.Group(func(r chi.Router) {
 		// апи для ввода ключа к гемини
 		r.Use(httpmw.ApiCheckMiddleWare(cfg.APIKey))
+		chatHandler.RegisterRoutes(r)
 	})
 
 	srv := &http.Server{
