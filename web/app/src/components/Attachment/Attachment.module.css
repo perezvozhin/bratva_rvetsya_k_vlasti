@@ -95,3 +95,7 @@
     transition: none;
   }
 }
+
+.failed {
+  color: var(--danger);
+}

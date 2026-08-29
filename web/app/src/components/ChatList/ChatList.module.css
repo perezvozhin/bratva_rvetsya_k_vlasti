@@ -143,3 +143,13 @@
     transition: none;
   }
 }
+
+.navItem {
+  padding: 9px 11px;
+}
+
+.navLabel {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}

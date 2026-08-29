@@ -11,7 +11,9 @@ type Config struct {
 	APIKey          string `envconfig:"GEMINI_API_KEY" required:"true"`
 	PathToInterview string `envconfig:"PATH_TO_INTERVIEW" default:"../interviews/"`
 	PathToChats     string `envconfig:"PATH_TO_CHATS" default:"../chats/"`
+	PathToDB        string `envconfig:"PATH_TO_DB" default:"../out/sqlite/vacancies.db"`
 	DefaultModel    string `envconfig:"GEMINI_DEFAULT_MODEL" default:"gemini-3.1-flash-lite"`
+	HHUserAgent     string `envconfig:"HH_USER_AGENT"`
 }
 
 func newConfig() (*Config, error) {

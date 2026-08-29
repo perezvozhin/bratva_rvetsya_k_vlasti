@@ -1,182 +1,442 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ChatList from './components/ChatList/ChatList'
 import ChatWindow from './components/ChatWindow/ChatWindow'
 import ConfirmDialog from './components/ConfirmDialog/ConfirmDialog'
-import { MOCK_CHATS, MOCK_MESSAGES } from './mocks/data'
+import VacancyBrowser from './components/VacancyBrowser/VacancyBrowser'
+import PromptDialog from './components/PromptDialog/PromptDialog'
+import {
+  getChats,
+  getMessages,
+  createChat,
+  deleteChat,
+  uploadInterview,
+  streamMessage,
+  getVacancies,
+  searchVacancies,
+  UnauthorizedError,
+} from './api'
+import { QUIZ_PROMPT, extractQuiz } from './shared/quiz'
 import s from './App.module.css'
 
-const FAKE_REPLY =
-  'Пока это заглушка вместо Gemini. Здесь появится ответ модели с учётом контекста именно этого чата — компании, вакансии и всего, что вы уже обсудили.'
+const PER_PAGE = 20
 
-const FAKE_REVIEW =
-  'Разобрал запись. Ответы по структуре держишь, но вступление затянуто — на первый вопрос ушло почти четыре минуты. По горутинам не хватило примеров из практики: теорию рассказал, а где сам ловил утечку, не показал. В конце не спросил про команду и процессы, а это обычно считают за незаинтересованность.'
+function normalizeChat(raw) {
+  const name = raw.chatName ?? raw.name ?? String(raw)
+
+  return {
+    name,
+    company: raw.company ?? name,
+    title: raw.title ?? '',
+    lastMessage: raw.lastMessage ?? '',
+    updatedAt: raw.updatedAt ?? '',
+  }
+}
+
+function normalizeMessage(raw, index) {
+  return {
+    id: index,
+    role: raw.role === 'model' ? 'model' : 'user',
+    text: raw.text ?? '',
+    file: raw.fileUri
+      ? { name: 'Запись собеса', size: 0, status: 'done', uri: raw.fileUri }
+      : undefined,
+  }
+}
 
 export default function App() {
-  const [chats, setChats] = useState(MOCK_CHATS)
-  const [threads, setThreads] = useState(MOCK_MESSAGES)
-  const [activeId, setActiveId] = useState(MOCK_CHATS[0]?.id ?? null)
+  const [chats, setChats] = useState([])
+  const [threads, setThreads] = useState({})
+  const [activeName, setActiveName] = useState(null)
   const [streamingId, setStreamingId] = useState(null)
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [creating, setCreating] = useState(false)
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [view, setView] = useState('vacancies')
+  const [vacancies, setVacancies] = useState([])
+  const [sources, setSources] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [vacancyPage, setVacancyPage] = useState(1)
+  const [vacancyTotal, setVacancyTotal] = useState(0)
+  const [found, setFound] = useState(null)
 
-  const timerRef = useRef(null)
-  const uploadRef = useRef(null)
-  const nextId = useRef(1000)
+  const abortRef = useRef(null)
+  const nextId = useRef(1)
 
-  const chat = chats.find((c) => c.id === activeId) ?? null
-  const messages = threads[activeId] ?? []
+  const chat = chats.find((c) => c.name === activeName) ?? null
+  const messages = threads[activeName] ?? []
 
-  function pushMessage(chatId, message) {
+  const handleError = useCallback((err) => {
+    if (err.name === 'AbortError') return
+
+    setError(
+      err instanceof UnauthorizedError
+        ? 'Не введён ключ Gemini — добавь GEMINI_API_KEY в .env'
+        : 'Сервер недоступен: ' + err.message,
+    )
+  }, [])
+
+  useEffect(() => {
+    getChats()
+      .then((list) => {
+        const normalized = (list ?? []).map(normalizeChat)
+        setChats(normalized)
+        setActiveName((prev) => prev ?? normalized[0]?.name ?? null)
+      })
+      .catch(handleError)
+      .finally(() => setLoading(false))
+  }, [handleError])
+
+  useEffect(() => {
+    if (found) return
+
+    getVacancies(PER_PAGE, (vacancyPage - 1) * PER_PAGE)
+      .then((res) => {
+        setVacancies(res?.vacancies ?? [])
+        setVacancyTotal(res?.total ?? 0)
+      })
+      .catch(handleError)
+  }, [vacancyPage, found, handleError])
+
+  useEffect(() => {
+    if (!activeName || threads[activeName]) return
+
+    getMessages(activeName)
+      .then((list) => {
+        const normalized = (list ?? []).map(normalizeMessage)
+        nextId.current = Math.max(nextId.current, normalized.length + 1)
+        setThreads((prev) => ({ ...prev, [activeName]: normalized }))
+      })
+      .catch(handleError)
+  }, [activeName, threads, handleError])
+
+  function pushMessage(name, message) {
     setThreads((prev) => ({
       ...prev,
-      [chatId]: [...(prev[chatId] ?? []), message],
+      [name]: [...(prev[name] ?? []), message],
     }))
   }
 
-  function stopStream() {
-    if (timerRef.current) clearInterval(timerRef.current)
-    if (uploadRef.current) clearInterval(uploadRef.current)
-    timerRef.current = null
-    uploadRef.current = null
-    setStreamingId(null)
-  }
-
-  function patchMessage(chatId, msgId, patch) {
+  function patchMessage(name, msgId, patch) {
     setThreads((prev) => ({
       ...prev,
-      [chatId]: prev[chatId].map((m) =>
+      [name]: (prev[name] ?? []).map((m) =>
         m.id === msgId ? { ...m, ...patch } : m,
       ),
     }))
   }
 
-  function streamReply(chatId, replyId, full) {
+  function touchChat(name, preview) {
+    setChats((prev) =>
+      prev.map((c) =>
+        c.name === name ? { ...c, lastMessage: preview, updatedAt: 'сейчас' } : c,
+      ),
+    )
+  }
+
+  function stopStream() {
+    abortRef.current?.abort()
+    abortRef.current = null
+    setStreamingId(null)
+  }
+
+  async function ask(name, req, replyId) {
+    const controller = new AbortController()
+    abortRef.current = controller
     setStreamingId(replyId)
 
-    let i = 0
-    timerRef.current = setInterval(() => {
-      i += 2
-      patchMessage(chatId, replyId, { text: full.slice(0, i) })
-      if (i >= full.length) stopStream()
-    }, 16)
-  }
-
-  function uploadFile(chatId, msgId, file) {
-    let done = 0
-
-    uploadRef.current = setInterval(() => {
-      done += 7
-      const progress = Math.min(done, 100)
-
-      patchMessage(chatId, msgId, { file: { ...file, progress } })
-
-      if (progress < 100) return
-
-      clearInterval(uploadRef.current)
-      uploadRef.current = null
-
-      patchMessage(chatId, msgId, {
-        file: { ...file, status: 'in progress' },
+    try {
+      await streamMessage(name, req, {
+        signal: controller.signal,
+        onChunk: (chunk) =>
+          setThreads((prev) => ({
+            ...prev,
+            [name]: prev[name].map((m) =>
+              m.id === replyId ? { ...m, text: m.text + chunk } : m,
+            ),
+          })),
       })
-
-      const replyId = nextId.current++
-      pushMessage(chatId, { id: replyId, role: 'model', text: '' })
-
-      setTimeout(() => {
-        patchMessage(chatId, msgId, { file: { ...file, status: 'done' } })
-        streamReply(chatId, replyId, FAKE_REVIEW)
-      }, 700)
-    }, 90)
+    } catch (err) {
+      handleError(err)
+      patchMessage(name, replyId, { text: 'Не удалось получить ответ.' })
+    } finally {
+      abortRef.current = null
+      setStreamingId(null)
+    }
   }
 
-  function send(text, file) {
-    const chatId = activeId
-    const userId = nextId.current++
+  async function send(text, file) {
+    const name = activeName
+    if (!name) return
 
-    pushMessage(chatId, {
+    const userId = nextId.current++
+    const replyId = nextId.current++
+
+    pushMessage(name, {
       id: userId,
       role: 'user',
       text,
       file: file ? { ...file, progress: 0 } : undefined,
     })
+    touchChat(name, file ? 'Запись собеса' : text)
 
-    setChats((prev) =>
-      prev.map((c) =>
-        c.id === chatId
-          ? {
-              ...c,
-              lastMessage: file ? 'Запись собеса' : text,
-              updatedAt: 'сейчас',
-            }
-          : c,
-      ),
-    )
+    let uploaded = null
 
     if (file) {
-      uploadFile(chatId, userId, file)
+      const controller = new AbortController()
+      abortRef.current = controller
+
+      try {
+        uploaded = await uploadInterview(name, file.raw, {
+          signal: controller.signal,
+          onProgress: (progress) =>
+            patchMessage(name, userId, { file: { ...file, progress } }),
+        })
+
+        patchMessage(name, userId, {
+          file: { ...file, status: 'in progress', uri: uploaded.uri },
+        })
+      } catch (err) {
+        handleError(err)
+        patchMessage(name, userId, { file: { ...file, status: 'failed' } })
+        abortRef.current = null
+        return
+      }
+
+      abortRef.current = null
+    }
+
+    pushMessage(name, { id: replyId, role: 'model', text: '' })
+
+    await ask(
+      name,
+      {
+        text: text || 'Разбери эту запись собеседования.',
+        fileUri: uploaded?.uri,
+        mimeType: uploaded?.mimeType,
+      },
+      replyId,
+    )
+
+    if (file) patchMessage(name, userId, { file: { ...file, status: 'done' } })
+  }
+
+  async function startQuiz() {
+    const name = activeName
+    if (!name) return
+
+    const replyId = nextId.current++
+    pushMessage(name, { id: replyId, role: 'model', text: '' })
+
+    const controller = new AbortController()
+    abortRef.current = controller
+    setStreamingId(replyId)
+
+    let raw = ''
+
+    try {
+      await streamMessage(
+        name,
+        { text: QUIZ_PROMPT },
+        {
+          signal: controller.signal,
+          onChunk: (chunk) => {
+            raw += chunk
+          },
+        },
+      )
+    } catch (err) {
+      handleError(err)
+      patchMessage(name, replyId, { text: 'Не удалось собрать вопросы.' })
+      abortRef.current = null
+      setStreamingId(null)
       return
     }
 
-    const replyId = nextId.current++
-    pushMessage(chatId, { id: replyId, role: 'model', text: '' })
-    streamReply(chatId, replyId, FAKE_REPLY)
-  }
+    abortRef.current = null
+    setStreamingId(null)
 
-  function createChat() {
-    const id = nextId.current++
-    const chat = {
-      id,
-      company: 'Новая компания',
-      title: 'Без названия',
-      lastMessage: 'Пустой чат',
-      updatedAt: 'сейчас',
+    const questions = extractQuiz(raw)
+
+    if (!questions) {
+      patchMessage(name, replyId, {
+        text: 'Не получилось разобрать вопросы, попробуй ещё раз.',
+      })
+      return
     }
 
-    setChats((prev) => [chat, ...prev])
-    setThreads((prev) => ({ ...prev, [id]: [] }))
-    setActiveId(id)
+    patchMessage(name, replyId, { text: 'Погоняю тебя по вакансии.' })
+    pushMessage(name, { id: nextId.current++, role: 'model', text: '', quiz: questions })
+    touchChat(name, 'Тренировка')
   }
 
-  function confirmDelete() {
-    const id = pendingDelete.id
-    stopStream()
+  async function addChat(value) {
+    setCreating(false)
 
-    setChats((prev) => prev.filter((c) => c.id !== id))
+    try {
+      await createChat(value)
+      setChats((prev) => [normalizeChat({ chatName: value }), ...prev])
+      setThreads((prev) => ({ ...prev, [value]: [] }))
+      setActiveName(value)
+      setView('chat')
+    } catch (err) {
+      handleError(err)
+    }
+  }
+
+  async function confirmDelete() {
+    const name = pendingDelete.name
+    stopStream()
+    setPendingDelete(null)
+
+    try {
+      await deleteChat(name)
+    } catch (err) {
+      handleError(err)
+      return
+    }
+
+    setChats((prev) => prev.filter((c) => c.name !== name))
     setThreads((prev) => {
       const next = { ...prev }
-      delete next[id]
+      delete next[name]
       return next
     })
 
-    if (id === activeId) {
-      const rest = chats.filter((c) => c.id !== id)
-      setActiveId(rest[0]?.id ?? null)
+    if (name === activeName) {
+      setActiveName(chats.find((c) => c.name !== name)?.name ?? null)
     }
-
-    setPendingDelete(null)
   }
 
-  function pickChat(id) {
+  function resetVacancies() {
+    setFound(null)
+    setSources([])
+    setVacancyPage(1)
+  }
+
+  function goVacancyPage(p) {
+    const pageCount = Math.max(1, Math.ceil(vacancyTotal / PER_PAGE))
+    const next = Math.min(Math.max(1, p), pageCount)
+
+    setVacancyPage(next)
+
+    if (found) {
+      const from = (next - 1) * PER_PAGE
+      setVacancies(found.slice(from, from + PER_PAGE))
+    }
+  }
+
+  function pickChat(name) {
     stopStream()
-    setActiveId(id)
+    setActiveName(name)
+    setView('chat')
+  }
+
+  async function runSearch(query) {
+    setSearching(true)
+
+    try {
+      const result = await searchVacancies(query)
+      setSources(result?.sources ?? [])
+
+      const list = result?.vacancies ?? []
+      setFound(list)
+      setVacancyTotal(list.length)
+      setVacancies(list.slice(0, PER_PAGE))
+      setVacancyPage(1)
+    } catch (err) {
+      handleError(err)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  async function chatAboutVacancy(vacancy) {
+    const name = `${vacancy.company} — ${vacancy.title}`
+
+    if (chats.some((c) => c.name === name)) {
+      pickChat(name)
+      return
+    }
+
+    try {
+      await createChat(name)
+    } catch (err) {
+      handleError(err)
+      return
+    }
+
+    setChats((prev) => [
+      normalizeChat({
+        chatName: name,
+        company: vacancy.company,
+        title: vacancy.title,
+        updatedAt: 'сейчас',
+      }),
+      ...prev,
+    ])
+    setThreads((prev) => ({ ...prev, [name]: [] }))
+    setActiveName(name)
+    setView('chat')
   }
 
   return (
     <div className={s.app}>
+      {error && (
+        <div className={s.error} role="alert">
+          {error}
+          <button type="button" onClick={() => setError(null)}>
+            ×
+          </button>
+        </div>
+      )}
+
       <ChatList
         chats={chats}
-        activeId={activeId}
+        activeName={view === 'chat' ? activeName : null}
+        loading={loading}
+        showVacancies={view === 'vacancies'}
         onPick={pickChat}
-        onCreate={createChat}
+        onCreate={() => setCreating(true)}
+        onShowVacancies={() => setView('vacancies')}
       />
 
-      <ChatWindow
-        chat={chat}
-        messages={messages}
-        streamingId={streamingId}
-        onSend={send}
-        onStop={stopStream}
-        onDelete={() => setPendingDelete(chat)}
-      />
+      {view === 'vacancies' ? (
+        <VacancyBrowser
+          vacancies={vacancies}
+          sources={sources}
+          searching={searching}
+          page={vacancyPage}
+          pageCount={Math.max(1, Math.ceil(vacancyTotal / PER_PAGE))}
+          from={(vacancyPage - 1) * PER_PAGE}
+          total={vacancyTotal}
+          filtered={found !== null}
+          onGo={goVacancyPage}
+          onReset={resetVacancies}
+          onSearch={runSearch}
+          onCreateChat={chatAboutVacancy}
+        />
+      ) : (
+        <ChatWindow
+          chat={chat}
+          messages={messages}
+          streamingId={streamingId}
+          onSend={send}
+          onStop={stopStream}
+          onDelete={() => setPendingDelete(chat)}
+          onQuiz={startQuiz}
+        />
+      )}
+
+      {creating && (
+        <PromptDialog
+          title="Новый чат"
+          hint="Обычно это компания или вакансия — по этому названию чат хранит свой контекст."
+          placeholder="Например: Ozon Tech"
+          onConfirm={addChat}
+          onCancel={() => setCreating(false)}
+        />
+      )}
 
       {pendingDelete && (
         <ConfirmDialog

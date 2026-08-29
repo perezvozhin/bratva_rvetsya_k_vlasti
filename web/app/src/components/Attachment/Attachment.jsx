@@ -5,12 +5,14 @@ const STATUS_LABEL = {
   new: 'загружено',
   'in progress': 'анализирую…',
   done: 'разобрано',
+  failed: 'не загрузилось',
 }
 
 const STATUS_CLASS = {
   new: s.new,
   'in progress': s.progress,
   done: s.done,
+  failed: s.failed,
 }
 
 function formatSize(bytes) {

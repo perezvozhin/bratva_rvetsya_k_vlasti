@@ -10,3 +10,33 @@
   }
 }
 
+
+.error {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 90vw;
+  padding: 10px 12px 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--danger);
+  background: var(--surface);
+  color: var(--danger);
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(12, 40, 38, 0.12);
+}
+
+.error button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+  padding: 0 2px;
+}

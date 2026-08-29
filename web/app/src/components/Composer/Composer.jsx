@@ -28,7 +28,7 @@ export default function Composer({ onSend, onStop, streaming, disabled }) {
 
   function pickFile(picked) {
     if (!picked) return
-    setFile({ name: picked.name, size: picked.size, status: 'new' })
+    setFile({ name: picked.name, size: picked.size, status: 'new', raw: picked })
   }
 
   function drop(e) {

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import Message from '../Message/Message'
 import Composer from '../Composer/Composer'
-import { TrashIcon, ChatIcon } from '../../icons/Icons'
+import Quiz from '../Quiz/Quiz'
+import { TrashIcon, ChatIcon, QuizIcon } from '../../icons/Icons'
 import s from './ChatWindow.module.css'
 import common from '../../shared/common.module.css'
 
@@ -12,6 +13,7 @@ export default function ChatWindow({
   onSend,
   onStop,
   onDelete,
+  onQuiz,
 }) {
   const scrollRef = useRef(null)
 
@@ -44,25 +46,41 @@ export default function ChatWindow({
           <span className={s.title}>{chat.title}</span>
         </div>
 
-        <button
-          type="button"
-          className={common.iconBtn}
-          onClick={() => onDelete(chat.id)}
-          aria-label="Удалить чат"
-        >
-          <TrashIcon />
-        </button>
+        <div className={s.actions}>
+          <button
+            type="button"
+            className={common.btnGhost}
+            onClick={onQuiz}
+            disabled={streamingId !== null}
+          >
+            <QuizIcon size={14} />
+            Тренировка
+          </button>
+
+          <button
+            type="button"
+            className={common.iconBtn}
+            onClick={onDelete}
+            aria-label="Удалить чат"
+          >
+            <TrashIcon />
+          </button>
+        </div>
       </header>
 
       <div className={s.scroll} ref={scrollRef}>
         <div className={s.thread}>
-          {messages.map((message) => (
-            <Message
-              key={message.id}
-              message={message}
-              streaming={message.id === streamingId}
-            />
-          ))}
+          {messages.map((message) =>
+            message.quiz ? (
+              <Quiz key={message.id} questions={message.quiz} />
+            ) : (
+              <Message
+                key={message.id}
+                message={message}
+                streaming={message.id === streamingId}
+              />
+            ),
+          )}
         </div>
       </div>
 

@@ -1,8 +1,16 @@
-import { PlusIcon, ChatIcon } from '../../icons/Icons'
+import { PlusIcon, ChatIcon, SearchIcon } from '../../icons/Icons'
 import s from './ChatList.module.css'
 import common from '../../shared/common.module.css'
 
-export default function ChatList({ chats, activeId, onPick, onCreate }) {
+export default function ChatList({
+  chats,
+  activeName,
+  loading,
+  showVacancies,
+  onPick,
+  onCreate,
+  onShowVacancies,
+}) {
   return (
     <aside className={s.sidebar}>
       <div className={s.head}>
@@ -15,6 +23,17 @@ export default function ChatList({ chats, activeId, onPick, onCreate }) {
 
         <button
           type="button"
+          className={`${s.item} ${showVacancies ? s.active : ''} ${s.navItem}`}
+          onClick={onShowVacancies}
+        >
+          <span className={s.badge}>
+            <SearchIcon size={14} />
+          </span>
+          <span className={s.navLabel}>Поиск вакансий</span>
+        </button>
+
+        <button
+          type="button"
           className={`${common.btnGhost} ${s.newBtn}`}
           onClick={onCreate}
         >
@@ -24,15 +43,17 @@ export default function ChatList({ chats, activeId, onPick, onCreate }) {
       </div>
 
       <div className={s.scroll}>
-        {chats.length === 0 ? (
+        {loading ? (
+          <p className={s.empty}>Загружаю…</p>
+        ) : chats.length === 0 ? (
           <p className={s.empty}>Чатов пока нет</p>
         ) : (
           chats.map((chat) => (
             <button
               type="button"
-              key={chat.id}
-              className={`${s.item} ${chat.id === activeId ? s.active : ''}`}
-              onClick={() => onPick(chat.id)}
+              key={chat.name}
+              className={`${s.item} ${chat.name === activeName ? s.active : ''}`}
+              onClick={() => onPick(chat.name)}
             >
               <span className={s.badge}>{chat.company.charAt(0)}</span>
 
