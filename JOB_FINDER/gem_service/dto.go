@@ -41,8 +41,7 @@ type ChatHistory struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-type Request struct {
-	Text     string `json:"text"`
-	FileURI  string `json:"fileUri"`
-	MIMEType string `json:"MIMEType"`
+type ChatSummary struct {
+	ChatName  string    `json:"chatName"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

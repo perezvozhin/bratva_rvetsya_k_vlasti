@@ -41,6 +41,14 @@ goose-action-sqlite: ## SQLite: Применить команду миграци
 run-app: ## Go: Запустить приложение
 	@go run -C ./JOB_FINDER ./cmd/main.go
 
+run-front: ## Front: Запустить Vite dev-сервер
+	@npm --prefix ./web/app run dev
+
+run-all: ## Запустить фронт и бэк вместе
+	@trap 'kill 0' INT TERM EXIT; \
+	$(MAKE) run-app & \
+	$(MAKE) run-front & \
+	wait
 
 
 help: ## Show help for commands

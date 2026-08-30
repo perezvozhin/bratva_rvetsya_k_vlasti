@@ -4,10 +4,14 @@ import (
 	"errors"
 	"io/fs"
 	"path/filepath"
+	"strings"
 	"time"
+	"unicode"
 
 	"google.golang.org/genai"
 )
+
+const maxSlugLen = 60
 
 func toContents(messages []Message) []*genai.Content {
 	var content []*genai.Content
@@ -67,5 +71,32 @@ func (g *GeminiService) saveHistory(s *session) error {
 }
 
 func (g *GeminiService) historyFile(chatName string) string {
-	return filepath.Join(g.chatsDir, "chat_"+chatName+"_history.json")
+	return filepath.Join(g.chatsDir, "chat_"+slugify(chatName)+"_history.json")
+}
+
+// slugify turns a user-typed chat name into a stable, filesystem-safe key.
+func slugify(s string) string {
+	var b strings.Builder
+	dash := false
+
+	for _, r := range strings.ToLower(strings.TrimSpace(s)) {
+		switch {
+		case unicode.IsLetter(r), unicode.IsDigit(r):
+			b.WriteRune(r)
+			dash = false
+		default:
+			if !dash && b.Len() > 0 {
+				b.WriteByte('-')
+				dash = true
+			}
+		}
+	}
+
+	out := strings.Trim(b.String(), "-")
+
+	if r := []rune(out); len(r) > maxSlugLen {
+		out = strings.Trim(string(r[:maxSlugLen]), "-")
+	}
+
+	return out
 }

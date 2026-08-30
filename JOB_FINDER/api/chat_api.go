@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -40,26 +41,58 @@ func (h *ChatHandler) RegisterRoutes(r chi.Router) {
 
 // GET /api/chats
 func (h *ChatHandler) getChats(w http.ResponseWriter, r *http.Request) {
-	// TODO: Убрать заглушку. Реализовать чтение JSON-файлов историй
-	// из папки chats/ и возврат реального массива созданных чатов.
+	chats, err := h.gemService.ListChats()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("[]"))
+	json.NewEncoder(w).Encode(chats)
 }
 
 // POST /api/chats
 func (h *ChatHandler) postChats(w http.ResponseWriter, r *http.Request) {
-	// TODO: Убрать заглушку. Реализовать создание нового чата:
-	// генерация ID, создание пустого JSON-файла истории и возврат объекта чата клиенту.
+	var req struct {
+		ChatName string `json:"chatName"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorw("Decode JSON failed", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	chat, err := h.gemService.CreateChat(req.ChatName)
+	switch {
+	case errors.Is(err, gem_service.ErrInvalidChatName):
+		http.Error(w, "invalid chat name", http.StatusBadRequest)
+		return
+	case errors.Is(err, gem_service.ErrChatExists):
+		http.Error(w, "chat already exists", http.StatusConflict)
+		return
+	case err != nil:
+		h.logger.Errorw("CreateChat failed", "chat", req.ChatName, "error", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"status": "ok"}`))
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(chat)
 }
 
 // GET /api/chats/{id}/messages
 func (h *ChatHandler) getMessages(w http.ResponseWriter, r *http.Request) {
-	// TODO: Убрать заглушку. Извлечь {id} из URL, прочитать
-	// соответствующий файл из папки chats/ и вернуть массив истории сообщений.
+	chatName := chi.URLParam(r, "id")
+
+	msgs, err := h.gemService.Messages(chatName)
+	if err != nil {
+		h.logger.Errorw("Messages failed", "chat", chatName, "error", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("[]"))
+	json.NewEncoder(w).Encode(msgs)
 }
 
 // DELETE /api/chats/{id}
@@ -174,4 +207,3 @@ func (h *ChatHandler) postMessage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "data: [DONE]\n\n")
 	flusher.Flush()
 }
-

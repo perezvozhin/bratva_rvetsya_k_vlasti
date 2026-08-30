@@ -20,6 +20,26 @@ import s from './App.module.css'
 
 const PER_PAGE = 20
 
+// бэкенд отдаёт RFC3339 с наносекундами - в сайдбаре нужна короткая дата,
+// иначе .time (flex-shrink: 0) выдавливает название чата из строки
+function formatUpdatedAt(value) {
+  if (!value) return ''
+
+  const date = new Date(value)
+  // уже готовая строка вроде 'сейчас' - отдаём как есть
+  if (Number.isNaN(date.getTime())) return value
+
+  const now = new Date()
+  const sameDay =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+
+  return sameDay
+    ? date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    : date.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })
+}
+
 function normalizeChat(raw) {
   const name = raw.chatName ?? raw.name ?? String(raw)
 
@@ -28,7 +48,7 @@ function normalizeChat(raw) {
     company: raw.company ?? name,
     title: raw.title ?? '',
     lastMessage: raw.lastMessage ?? '',
-    updatedAt: raw.updatedAt ?? '',
+    updatedAt: formatUpdatedAt(raw.updatedAt),
   }
 }
 
