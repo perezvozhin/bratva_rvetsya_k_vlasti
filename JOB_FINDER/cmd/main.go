@@ -7,7 +7,10 @@ import (
 	"JOB_FINDER/httpmw"
 	config "JOB_FINDER/internals/FS_config"
 	loggersystem "JOB_FINDER/internals/logger"
+	"JOB_FINDER/internals/repository/sqlite"
 	"JOB_FINDER/storage"
+	"JOB_FINDER/usr_service/parser"
+	"JOB_FINDER/usr_service/parser/providers"
 	"context"
 	"net/http"
 
@@ -32,24 +35,24 @@ func main() {
 
 	chatHandler := api.NewChatHandler(gemService, store, logger)
 
-	// repo, err := sqlite.NewVacancyRepo(cfg.PathToDB)
-	// if err != nil {
-	// 	logger.Fatal("failed to init vacancy repo", "err", err)
-	// 	panic(err)
-	// }
-	// defer repo.Close()
-	//
-	// parserService := parser.NewParserService(repo, logger,
-	// 	providers.NewHabr(mcp),
-	// 	providers.NewHH(mcp, cfg.HHUserAgent),
-	// )
-	// vacancyHandler := api.NewVacancyHandler(parserService, logger)
+	repo, err := sqlite.NewVacancyRepo(cfg.PathToDB)
+	if err != nil {
+		logger.Fatal("failed to init vacancy repo", "err", err)
+		panic(err)
+	}
+	defer repo.Close()
+
+	parserService := parser.NewParserService(repo, logger,
+		providers.NewHabr(mcp),
+		providers.NewHH(mcp, cfg.HHUserAgent),
+	)
+	vacancyHandler := api.NewVacancyHandler(parserService, logger)
 
 	router.Group(func(r chi.Router) {
 		// апи для ввода ключа к гемини
 		r.Use(httpmw.ApiCheckMiddleWare(cfg.APIKey))
 		chatHandler.RegisterRoutes(r)
-		// vacancyHandler.RegisterRoutes(r)
+		vacancyHandler.RegisterRoutes(r)
 	})
 
 	srv := &http.Server{
