@@ -15,7 +15,7 @@ import {
   searchVacancies,
   UnauthorizedError,
 } from './api'
-import { QUIZ_PROMPT, extractQuiz } from './shared/quiz'
+import { QUIZ_PROMPT, QUIZ_MARKER, extractQuiz } from './shared/quiz'
 import s from './App.module.css'
 
 const PER_PAGE = 20
@@ -53,10 +53,18 @@ function normalizeChat(raw) {
 }
 
 function normalizeMessage(raw, index) {
+  const text = raw.text ?? ''
+  const isModel = raw.role === 'model'
+  const quiz = isModel ? extractQuiz(text) : null
+
+  if (quiz) {
+    return { id: index, role: 'model', text: '', quiz }
+  }
+
   return {
     id: index,
-    role: raw.role === 'model' ? 'model' : 'user',
-    text: raw.text ?? '',
+    role: isModel ? 'model' : 'user',
+    text,
     file: raw.fileUri
       ? { name: 'Запись собеса', size: 0, status: 'done', uri: raw.fileUri }
       : undefined,
@@ -123,7 +131,9 @@ export default function App() {
 
     getMessages(activeName)
       .then((list) => {
-        const normalized = (list ?? []).map(normalizeMessage)
+        const normalized = (list ?? [])
+          .filter((m) => !(m.text ?? '').includes(QUIZ_MARKER))
+          .map(normalizeMessage)
         nextId.current = Math.max(nextId.current, normalized.length + 1)
         setThreads((prev) => ({ ...prev, [activeName]: normalized }))
       })

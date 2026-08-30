@@ -5,7 +5,15 @@ import common from '../../shared/common.module.css'
 
 const KEYS = ['A', 'B', 'C', 'D', 'E']
 
-export default function Quiz({ questions, onFinish }) {
+function resultText(right, total) {
+  const ratio = right / total
+
+  if (ratio === 1) return 'Идеально — к собесу готов.'
+  if (ratio >= 0.6) return 'Неплохо, но пробелы есть.'
+  return 'Стоит подтянуть тему перед собесом.'
+}
+
+export default function Quiz({ questions }) {
   const [index, setIndex] = useState(0)
   const [picked, setPicked] = useState(null)
   const [right, setRight] = useState(0)
@@ -13,6 +21,7 @@ export default function Quiz({ questions, onFinish }) {
   const question = questions[index]
   const answered = picked !== null
   const isRight = answered && picked === question.correct
+  const isLast = index + 1 >= questions.length
 
   useEffect(() => {
     if (!answered) return
@@ -28,11 +37,6 @@ export default function Quiz({ questions, onFinish }) {
   }
 
   function next() {
-    if (index + 1 >= questions.length) {
-      onFinish?.({ right, total: questions.length })
-      return
-    }
-
     setIndex((i) => i + 1)
     setPicked(null)
   }
@@ -81,11 +85,20 @@ export default function Quiz({ questions, onFinish }) {
         </div>
       )}
 
-      {answered && (
+      {answered && !isLast && (
         <div className={s.actions}>
           <button type="button" className={common.btnPrimary} onClick={next}>
-            {index + 1 >= questions.length ? 'Завершить' : 'Дальше'}
+            Дальше
           </button>
+        </div>
+      )}
+
+      {answered && isLast && (
+        <div className={s.done}>
+          <span className={s.score}>
+            {right} из {questions.length}
+          </span>
+          <span className={s.doneText}>{resultText(right, questions.length)}</span>
         </div>
       )}
     </div>
